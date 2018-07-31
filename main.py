@@ -1,5 +1,5 @@
 #This program takes two arguments
-#First arguemnt: directory to input MOD files
+#Firt arguemnt: directory to input MOD files
 #Second argument: directory to the 2011lumibyls.csv file
 #The result is stored in event_list
 
@@ -7,17 +7,18 @@
 from collections import Counter
 import csv
 import time
-import read_file
+import lumi
+import trigger
+import load_events
+import plot
 import sys
 import os
-
-#Initialise script run time
-start_time = time.clock()
+import matplotlib.pyplot as pl
 
 ############################ INPUT FILES ############################
 
 #Get the directories of all MOD files
-input_directory = '/Users/mod/ProducedMOD/eos/opendata/cms/Run2011A/Jet/MOD/12Oct2013-v1/20000/' #sys.argv[1]
+input_directory = sys.argv[1]
 data_files = os.listdir(input_directory)
 
 data_files_2011 = []
@@ -27,30 +28,44 @@ for data_file in data_files:
         data_files_2011.append(input_directory + data_file)
 
 #Load good lumi block numbers
-lumi_runs_and_blocks = read_file.read_lumi_runs_and_blocks('/Users/mod/Downloads/MODAnalyzer-prekshan-patch-1/2011lumibyls.csv')  #sys.argv[2])
+lumi_runs_and_blocks = lumi.read_lumi_runs_and_blocks(sys.argv[2])
 
-############################ LOAD MOD FILES ############################
+############################ LOAD VALID EVENT LINE NO AFTER LUMI ############################
 
-#Dictionary of MOD file directories, in each of which a list of each valid event's start and end line # is stored
+#Dictionary of MOD file directories, the keys are directories, and values are lists of valid events in that directory
+#total event count counts all events (including invalid event), and is used to calculate cross section
 valid_event_line_no_2011 = {}
+total_event_count = 0
 
 for data_file in data_files_2011:
     valid_event_line_no_2011[data_file] = []
     
     raw_MOD_file = open(data_file)
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
-    read_file.get_valid_line_no(MOD_file, valid_event_line_no_2011[data_file], lumi_runs_and_blocks)
+    total_event_count += lumi.get_line_no_good_lumi(MOD_file, valid_event_line_no_2011[data_file], lumi_runs_and_blocks)
 
-#print(len(valid_event_line_no_2011[data_files_2011[0]]))
+############################ LOAD EVENTS INTO EVENT LIST ############################
 
-#Update data files with bad trigger events removed
+event_list = []
+
+load_events.load_valid_event_entries(valid_event_line_no_2011, event_list, "PFC", ["px", "total_px"])
+
+############################ LOAD VALID EVENT LINE NO AFTER TRIGGER ############################
+
 for data_file in data_files_2011:
     raw_MOD_file = open(data_file)
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
-    read_file.remove_bad_trigger_events(MOD_file, valid_event_line_no_2011[data_file])
+    trigger.remove_bad_trigger_events(MOD_file, valid_event_line_no_2011[data_file])
 
-#print(len(valid_event_line_no_2011[data_files_2011[0]]))
+############################ LOAD EVENTS INTO EVENT LIST ############################
 
+event_list_with_trigger = []
 
-#Output final script run time
-print('Script run time:',time.clock()-start_time,'seconds')
+load_events.load_valid_event_entries(valid_event_line_no_2011, event_list_with_trigger, "PFC", ["px", "total_px"])
+
+############################ PLOT ############################
+
+pl.close('all')
+
+plot.plot('Total Momentum components of Jets per Event Histogram', 'Total Momentum components of Jets per Event', [[event["total_px"] for event in event_list], [event["total_px"] for event in event_list_with_trigger]], ['$p_x$ before trigger', '$p_x$ after trigger'], ['Momenta Component Totals per Event $[GeV]$', 'Frequency density $[GeV^{-1}]$'], True)
+
