@@ -7,7 +7,16 @@ import csv
 def load_valid_event_entries(valid_event_line_no, event_list, type, keys):
     count = 0
     
-    PFC_key_dic = {"px": 1}
+    PFC_key_dic = {"px": 1,
+                   "py": 2,
+                   "pz": 3,
+                   "e": 4,
+                   "pdgId": 5}
+    
+    PFC_tot_dic = {"total_px": 1,
+                   "total_py": 2,
+                   "total_pz": 3,
+                   "total_e": 4}
 
     for MOD_file_dir in valid_event_line_no:
         raw_MOD_file = open(MOD_file_dir)
@@ -38,8 +47,9 @@ def load_valid_event_entries(valid_event_line_no, event_list, type, keys):
                         if key in PFC_key_dic:
                             event_list[-1][type][-1][key] = float(row[PFC_key_dic[key]])
                         
-                        elif key == "total_px":
-                            event_list[-1][key] += float(row[PFC_key_dic["px"]])
+                        elif key in PFC_tot_dic:
+                            shortkey = key.split('_')[1]
+                            event_list[-1][key] += float(row[PFC_key_dic[shortkey]])
                 elif len(event_list[-1][type]) > 0:
                     break
 
