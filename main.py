@@ -1,6 +1,5 @@
-#This program takes two arguments
+#This program takes one arguments
 #Firt arguemnt: directory to input MOD files
-#Second argument: directory to the 2011lumibyls.csv file
 #The result is stored in event_list
 
 #import modules
@@ -28,7 +27,7 @@ for data_file in data_files:
         data_files_2011.append(input_directory + data_file)
 
 #Load good lumi block numbers
-lumi_runs_and_blocks = lumi.read_lumi_runs_and_blocks(sys.argv[2])
+lumi_runs_and_blocks = lumi.read_lumi_runs_and_blocks("./2011lumibyls.csv")
 
 ############################ LOAD VALID EVENT LINE NO AFTER LUMI ############################
 
