@@ -1,66 +1,12 @@
 import csv
 import numpy as np
-
-def remove_bad_trigger_events(MOD_file, line_no_list):
-    """ Inputs: each MOD_file and the list of good events line numbers
-        Outputs: the updated list with bad trigger events removed
-        """
-    
-    #Array to store trigger information for valid line no
-    trigger_list = []
-    
-    #Initialise csv reader at first line
-    next(MOD_file)
-    Current_line = 0
-    
-    #Dictionary of trigger ranges, s.t. key=trigger label, entry=true cut-off range squared
-    Trigger_ranges = {30.:900.,60.:8100.,80.:12100.,110.:22500.,150.:44100.,190.:72900.,240.:96100.,300.:152100.,370.:230400.}
-    
-    #Loop through all listed events in MOD_file
-    for event in line_no_list:
-        Trigger = [0.,1.] #Initialise event max trigger arbitrarily, with format: [Trigger label, Composite Prescale factor]
-        Max_pT_squared = 0.
-        
-        #Iterate to line before the first line of current event
-        while Current_line < event[0]-1:
-            next(MOD_file)
-            Current_line += 1
-    
-        event_removed = False
-        
-        #Loop through lines of this event
-        for line_no in range(event[0],event[1]+1):
-            Line = next(MOD_file) #Read in current line to reduce multiple line calls
-            Current_line += 1
-            
-            if Line[0] == "Trig" and len(Line[1]) <= 13 and Line[4] == 1:   #Only consider HLT_Jet trigger types that have fired
-                if float(Line[1][7:-3]) > Trigger[0]:                       #Only update if trigger cut-off is larger than current cut-off in consideration
-                    Trigger = [float(Line[1][7:-3]),float(Line[2])*float(Line[3])]
-        
-            elif Line[0] == "AK5":
-                if Trigger == [0.,1.]: #If no triggers fired, remove event
-                    line_no_list.remove(event)
-                    event_removed = True
-                    break
-                if np.sqrt(Line[1]**2+Line[2]**2) > Max_pT_squared: #Find max Jet transverse momentum (only updating max if next jets value is larger than current)
-                    Max_pT_squared = np.sqrt(Line[1]**2+Line[2]**2)
-
-        #Remove event if Maximum jet transverse momentum does not exceed the true trigger cut-off for the highest fired trigger label
-        if Trigger[0] != 0.:
-            if Max_pT_squared < Trigger_ranges[Trigger[0]]:
-                line_no_list.remove(event)
-                event_removed = True
-        
-        if not event_removed:
-            trigger_list.append("HLT_Jet"+str(int(Trigger[0])))
-
-    return trigger_list
+import copy
 
 #This function returns a list of events trat passed the trigger check
 #Each event is in the format [event_start_line_no, event_end_line_no, trigger_string_without_version_no]
 def get_line_no_trigger_fired(MOD_file, line_no_list):
     """ Inputs: each MOD_file and the list of good events line numbers
-        Outputs: the updated list with bad trigger events removed
+        Outputs: the updated list with bad trigger events and those whose hardest jet don't satsfy the JQC removed
         """
     #Initialize the new line_no_list
     #We rewrite the list to avoid confusion when removing directly from the loop
@@ -77,6 +23,9 @@ def get_line_no_trigger_fired(MOD_file, line_no_list):
     for (idx, event) in enumerate(line_no_list):
         if idx%1000 == 0 and i>0:
             print("Checking trigger for event # " + str(idx))
+        
+        #Create a list to store the hardest jet data for each event, to allow comparison with the JQC
+        Hardest_Jet_row = []
         
         trigger = ["default", 1.] #Initialise event max trigger arbitrarily, with format: [Trigger label, Composite Prescale factor]
         max_pT_squared = 0.
@@ -118,6 +67,7 @@ def get_line_no_trigger_fired(MOD_file, line_no_list):
                     current_pT_squared = (float(row[1])**2 + float(row[2])**2)*float(row[4])**2 #Scale p_T by the JEC factor
                     if current_pT_squared > max_pT_squared: #Find max Jet transverse momentum (only updating max if next jets value is larger than current)
                         max_pT_squared = current_pT_squared
+                        Hardest_Jet_row = copy.deepcopy(row)
                 elif header_is_AK5 == True:
                     break
                 
@@ -133,7 +83,9 @@ def get_line_no_trigger_fired(MOD_file, line_no_list):
                 if squared_trigger_ranges[key] <= max_pT_squared and squared_trigger_ranges[key] > squared_trigger_ranges[trigger_for_max_pT]:
                     trigger_for_max_pT = key
             if trigger[0] == trigger_for_max_pT:
-                line_no_list_trigger_fired.append([event[0], event[1], trigger[0]]) #Adding event to list if creteria are satisfied
+                #apply 'loose' JQC to the hardest Jet, and only accept events whose hardest jet satisfies them
+                if float(Hardest_Jet_row[7]) > 1. and float(Hardest_Jet_row[8]) > 0. and float(Hardest_Jet_row[9]) < 0.99 and float(Hardest_Jet_row[10]) < 0.99 and float(Hardest_Jet_row[11]) > 0. and float(Hardest_Jet_row[12]) < 0.99:
+                    line_no_list_trigger_fired.append([event[0], event[1], trigger[0]]) #Adding event to list if creteria are satisfied
     
     return line_no_list_trigger_fired
 
