@@ -61,7 +61,7 @@ load_events.load_valid_event_entries(valid_event_line_no_2011, event_list, "PFC"
 for data_file in data_files_2011:
     raw_MOD_file = open(data_file)
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
-    trigger.remove_bad_trigger_events(MOD_file, valid_event_line_no_2011[data_file])
+    valid_event_line_no_2011[data_file] = trigger.get_line_no_trigger_fired(MOD_file, valid_event_line_no_2011[data_file])
 
 ############################ LOAD EVENTS INTO EVENT LIST ############################
 
