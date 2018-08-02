@@ -14,11 +14,15 @@ import plot
 import sys
 import os
 import matplotlib.pyplot as pl
+import time
+
+#Initialise start time
+start_time = time.clock()
 
 ############################ INPUT FILES ############################
 
 #Get the directories of all MOD files
-input_directory = sys.argv[1]
+input_directory = '/Users/mod/ProducedMOD/eos/opendata/cms/Run2011A/Jet/MOD/12Oct2013-v1/20000/'
 data_files = os.listdir(input_directory)
 
 data_files_2011 = []
@@ -54,8 +58,6 @@ for data_file in data_files_2011:
 
 event_list = []
 
-load_events.load_valid_event_entries(valid_event_line_no_2011, event_list, "PFC", ["px", "total_px", "e", "total_e"])
-
 ############################ LOAD VALID EVENT LINE NO AFTER TRIGGER ############################
 
 for data_file in data_files_2011:
@@ -76,3 +78,5 @@ pl.close('all')
 plot.plot('Total Momentum components of Jets per Event Histogram', 'Total Momentum components of Jets per Event', [[event["total_px"] for event in event_list], [event["total_px"] for event in event_list_with_trigger]], ['$p_x$ before trigger', '$p_x$ after trigger'], ['Momenta Component Totals per Event $[GeV]$', 'Frequency density $[GeV^{-1}]$'], True)
 plot.plot('Total Momentum components of Jets per Event Histogram', 'Total Momentum components of Jets per Event', [[event["total_e"] for event in event_list], [event["total_e"] for event in event_list_with_trigger]], ['$E$ before trigger', '$E$ after trigger'], ['Momenta Component Totals per Event $[GeV]$', 'Frequency density $[GeV^{-1}]$'], True)
 
+#Print final script run time
+print('Script runtime:',time.clock()-start_time)
