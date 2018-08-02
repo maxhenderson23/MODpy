@@ -109,17 +109,13 @@ def get_line_no_trigger_fired(MOD_file, line_no_list):
 
                 (i, row) = next_MOD_file(i, MOD_file) #End of iteration 
 
-        #Remove event if Maximum jet transverse momentum does not exceed the true trigger cut-off for the highest fired trigger label
-        if Trigger[0] != 0.:
-            if Max_pT_squared < Trigger_ranges[Trigger[0]]:
-                line_no_list.remove(event)
 
         #Only record event with a trigger fired and that trigger matches the max pT
         #Recording a list of [event_start_line_no, event_end_line_no, trigger_string_without_version_no] 
         if trigger[0] != "default" and max_pT_squared != 0.:
 
             #Find trigger range for max pt and check if the hardest trigger fired matches 
-            trigger_for_max_pT = "default": 
+            trigger_for_max_pT = "default"
             for key in squared_trigger_ranges:
                 if squared_trigger_ranges[key] <= max_pT_squared and squared_trigger_ranges[key] > squared_trigger_ranges[trigger_for_max_pT]:
                     trigger_for_max_pT = key
