@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Aug  2 11:32:14 2018
+
+@author: Max
+"""
+
+import numpy as np
+
+def match_jets(pFJ, pAK5, errors=False):
+    
+    #sorting code
+    
+    #values in MeV
+    for pi in pFJ:
+        #find all jets within 1 MeV
+        pclose = []
+        
+        for pj in PAK5:
+            k = 0
+            if np.abs(pi[k] - pj[k]) <= 1.:
+                print("matched")
+    
+    
+match_jets([[331.,221.,111.4,1000.], [431.,221.,211.4,2000.]],[[431.,221.,211.6,2000.8], [331.3,221.9,110.6,,1000.99]], True)
