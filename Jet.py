@@ -45,11 +45,3 @@ class Jet:
     
     def phi(self):
         return self.__phi
-
-j = Jet([0.,1,2,3])
-
-j.pT()
-j.e()
-j.mass()
-j.rap()
-j.phi()

@@ -21,7 +21,7 @@ start_time = time.clock()
 
 ############################ INPUT FILES ############################
 
-#Get the directories of all MOD files
+#Get the directories of all MOD files=
 input_directory = sys.argv[1] #'/Users/mod/ProducedMOD/eos/opendata/cms/Run2011A/Jet/MOD/12Oct2013-v1/20000/'
 data_files = os.listdir(input_directory)
 
