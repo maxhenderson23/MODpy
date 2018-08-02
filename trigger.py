@@ -30,7 +30,7 @@ def get_line_no_trigger_fired(MOD_file, line_no_list):
         trigger = ["default", 1.] #Initialise event max trigger arbitrarily, with format: [Trigger label, Composite Prescale factor]
         max_pT_squared = 0.
         
-        #Iterate to line until the first line of current event
+        #Iterate to the first line of current event
         #The iterator is increased at the end of iterator, so that
         #when the while loop is broken, we are at the line number ? for "while i < ?" as written in the while condition
         while i < event[0]:

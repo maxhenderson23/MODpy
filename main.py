@@ -9,20 +9,20 @@ import csv
 import time
 import lumi
 import trigger
+import FJ_Jet_generator
 import load_events
 import plot
 import sys
 import os
 import matplotlib.pyplot as pl
-import time
 
 #Initialise start time
 start_time = time.clock()
 
 ############################ INPUT FILES ############################
 
-#Get the directories of all MOD files
-input_directory = sys.argv[1]
+#Get the directories of all MOD files=
+input_directory = sys.argv[1] #'/Users/mod/ProducedMOD/eos/opendata/cms/Run2011A/Jet/MOD/12Oct2013-v1/20000/'
 data_files = os.listdir(input_directory)
 
 data_files_2011 = []
@@ -58,12 +58,20 @@ for data_file in data_files_2011:
 
 event_list = []
 
-############################ LOAD VALID EVENT LINE NO AFTER TRIGGER ############################
+############################ LOAD VALID EVENT LINE NO AFTER TRIGGER AND JQC ############################
 
 for data_file in data_files_2011:
     raw_MOD_file = open(data_file)
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
     valid_event_line_no_2011[data_file] = trigger.get_line_no_trigger_fired(MOD_file, valid_event_line_no_2011[data_file])
+    
+############################ LOAD VALID EVENT LINE NO AND FJ JETS AFTER FJ CROSSCHECK ############################
+
+for data_file in data_files_2011:
+    raw_MOD_file = open(data_file)
+    MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
+    valid_event_line_no_2011[data_file] = FJ_Jet_generator.Jet_generator(MOD_file, valid_event_line_no_2011[data_file])
+
 
 ############################ LOAD EVENTS INTO EVENT LIST ############################
 
