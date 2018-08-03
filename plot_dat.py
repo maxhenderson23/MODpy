@@ -109,7 +109,7 @@ for data_file in data_files:
     DAT_file = csv.reader(open(input_directory + data_file), delimiter=' ', skipinitialspace = 1)
 
     (var_list, scale_list) = read_dat_to_list(scaling_factors, DAT_file)
-    (current_hist_data, bin_edges) = np.histogram(var_list, bins=no_of_bins, range = var_range, weights = scale_list)
+    (current_hist_data, bin_edges) = np.histogram(var_list, bins=no_of_bins, range = var_range, weights = [x*no_of_bins/(var_range[1]-var_range[0]) for x in scale_list])
     hist_data = list(map(add, current_hist_data, hist_data))
     no_of_events += len(var_list)
 
