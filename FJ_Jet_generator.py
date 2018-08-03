@@ -2,6 +2,7 @@
 #regeneraqtes all the jets from the PFC 4-vectors, tests the compatibility to the AK5s,
 #and saves the good event jets
 import fastjet as fj
+import plot
 from match_jets import match_jets
 
 #Define FastJet parameters, and the algorithm
@@ -13,8 +14,9 @@ def Jet_generator(MOD_file,line_no_list):
     """ Inputs: MOD_file and the list of all good events
         Outputs: the updated list of good events and the respective FJ jets' 4-vectors for those events
     """
-    #Updated format of good events: [first line, second line, trigger, [list of jets]]
+    #Return format: [[first line, second line, trigger], [list of jets]]
     Jet_corrected_line_no_list = [] 
+    all_jets = []
     
     #Initialise csv reader at zeroth line with index i=-1
     i = -1
@@ -47,12 +49,15 @@ def Jet_generator(MOD_file,line_no_list):
         #Create the jets via FastJet algorithm
         jets = jet_def(Particles)
         
+        #pFJ = [[jet.px(), jet.py(), jet.pz(), jet.e()] for jet in jets]
+        
         #Check to see if FJ jets correspond to AK5 jets, if they don't ignore/remove event, if they do save the event and FJ jet 4-vectors
-        if match_jets(jets,AK5s) is True:
-            Jet_corrected_line_no_list.append([event[0],event[1],event[2],jets])
+        if 1:#match_jets(pFJ,AK5s):
+            Jet_corrected_line_no_list.append([event[0],event[1],event[2]])
+            for jet in jets:
+                all_jets.append(jet)
     
-    return Jet_corrected_line_no_list
-
+    return [Jet_corrected_line_no_list, all_jets]
 
 #Define function to increment the current row in consideration in the input MOD file, and respective counter
 def next_MOD_file(i, MOD_file):

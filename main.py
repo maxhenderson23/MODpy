@@ -10,6 +10,7 @@ import time
 import lumi
 import trigger
 import FJ_Jet_generator
+import Jet
 import load_events
 import plot
 import sys
@@ -54,10 +55,6 @@ for data_file in data_files_2011:
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
     total_event_count += lumi.get_line_no_good_lumi(MOD_file, valid_event_line_no_2011[data_file], lumi_runs_and_blocks, total_event_limit - total_event_count)
 
-############################ LOAD EVENTS INTO EVENT LIST ############################
-
-event_list = []
-
 ############################ LOAD VALID EVENT LINE NO AFTER TRIGGER AND JQC ############################
 
 for data_file in data_files_2011:
@@ -66,15 +63,25 @@ for data_file in data_files_2011:
     valid_event_line_no_2011[data_file] = trigger.get_line_no_trigger_fired(MOD_file, valid_event_line_no_2011[data_file])
     
 ############################ LOAD VALID EVENT LINE NO AND FJ JETS AFTER FJ CROSSCHECK ############################
+    
+jets = {}
 
 for data_file in data_files_2011:
     raw_MOD_file = open(data_file)
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
-    valid_event_line_no_2011[data_file] = FJ_Jet_generator.Jet_generator(MOD_file, valid_event_line_no_2011[data_file])
-
-
+    [valid_event_line_no_2011[data_file], jets[data_file]] = FJ_Jet_generator.Jet_generator(MOD_file, valid_event_line_no_2011[data_file])
+    
+############################ PLot JETS ############################
+    
+    plot.plot('Mass spectrum', [[j.m() for j in jets[data_file]]], ['CMS OpenData'], ['$m$ [GeV]','Frequency density [GeV$^{-1}$]'], True)
+    plot.plot('Multiplicity spectrum', [[len(j.constituents()) for j in jets[data_file]]], ['CMS OpenData'], ['Multiplicity','Frequency density'], True)
+    plot.plot('Transverse momentum spectrum', [[j.pt() for j in jets[data_file]]], ['CMS OpenData'], ['$pT$ [GeV]','Frequency density [GeV$^{-1}$]'], True)
+    plot.plot('Rapidity spectrum', [[j.rap() for j in jets[data_file]],[j.eta() for j in jets[data_file]]], ['Rapidity, $y$','Pseudorapidity, $\eta$'], [' ','Frequency density'], False)
+    plot.plot('Azimuth spectrum', [[j.phi() for j in jets[data_file]]], ['CMS OpenData'], ['$\phi$','Frequency density'], False)
+    
 ############################ LOAD EVENTS INTO EVENT LIST ############################
 
+event_list = []
 event_list_with_trigger = []
 
 load_events.load_valid_event_entries(valid_event_line_no_2011, event_list_with_trigger, "PFC", ["px", "total_px", "e", "total_e"])
@@ -83,8 +90,8 @@ load_events.load_valid_event_entries(valid_event_line_no_2011, event_list_with_t
 
 pl.close('all')
 
-plot.plot('Total Momentum components of Jets per Event Histogram', 'Total Momentum components of Jets per Event', [[event["total_px"] for event in event_list], [event["total_px"] for event in event_list_with_trigger]], ['$p_x$ before trigger', '$p_x$ after trigger'], ['Momenta Component Totals per Event $[GeV]$', 'Frequency density $[GeV^{-1}]$'], True)
-plot.plot('Total Momentum components of Jets per Event Histogram', 'Total Momentum components of Jets per Event', [[event["total_e"] for event in event_list], [event["total_e"] for event in event_list_with_trigger]], ['$E$ before trigger', '$E$ after trigger'], ['Momenta Component Totals per Event $[GeV]$', 'Frequency density $[GeV^{-1}]$'], True)
+plot.plot('Total Momentum components of Jets per Event', [[event["total_px"] for event in event_list], [event["total_px"] for event in event_list_with_trigger]], ['$p_x$ before trigger', '$p_x$ after trigger'], ['Momenta Component Totals per Event $[GeV]$', 'Frequency density $[GeV^{-1}]$'], True)
+plot.plot('Total Momentum components of Jets per Event', [[event["total_e"] for event in event_list], [event["total_e"] for event in event_list_with_trigger]], ['$E$ before trigger', '$E$ after trigger'], ['Momenta Component Totals per Event $[GeV]$', 'Frequency density $[GeV^{-1}]$'], True)
 
 #Print final script run time
 print('Script runtime:',time.clock()-start_time)

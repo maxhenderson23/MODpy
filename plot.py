@@ -3,8 +3,8 @@ import matplotlib.pyplot as pl
 
 list_of_colors = ['r', 'b', 'k']
 
-def plot(name, title, list_of_data, list_of_labels, axis_labels, y_log = False):
-    pl.figure(name)
+def plot(title, list_of_data, list_of_labels, axis_labels, y_log = False):
+    pl.figure(title + "_hist")
     pl.title(title)
 
     hists = []
@@ -18,6 +18,9 @@ def plot(name, title, list_of_data, list_of_labels, axis_labels, y_log = False):
     pl.ylabel(axis_labels[1])
     if y_log:
         pl.yscale('log')
+    else:
+        pl.yscale('linear')
+        
     pl.legend(loc='best')
     pl.grid()
 
