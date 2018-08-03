@@ -56,6 +56,7 @@ for data_file in data_files_2011:
 
 ############################ LOAD EVENTS INTO EVENT LIST ############################
 
+print('Number events past lumi check:',len(valid_event_line_no_2011[data_files_2011[0]])+len(valid_event_line_no_2011[data_files_2011[1]]))
 event_list = []
 
 ############################ LOAD VALID EVENT LINE NO AFTER TRIGGER AND JQC ############################
@@ -65,12 +66,16 @@ for data_file in data_files_2011:
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
     valid_event_line_no_2011[data_file] = trigger.get_line_no_trigger_fired(MOD_file, valid_event_line_no_2011[data_file])
     
+print('Number events past trigger check:',len(valid_event_line_no_2011[data_files_2011[0]])+len(valid_event_line_no_2011[data_files_2011[1]]))
+
 ############################ LOAD VALID EVENT LINE NO AND FJ JETS AFTER FJ CROSSCHECK ############################
 
 for data_file in data_files_2011:
     raw_MOD_file = open(data_file)
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
     valid_event_line_no_2011[data_file] = FJ_Jet_generator.Jet_generator(MOD_file, valid_event_line_no_2011[data_file])
+
+print('Number events past FJ check:',len(valid_event_line_no_2011[data_files_2011[0]])+len(valid_event_line_no_2011[data_files_2011[1]]))
 
 
 ############################ LOAD EVENTS INTO EVENT LIST ############################
