@@ -64,7 +64,7 @@ def get_line_no_trigger_fired(MOD_file, line_no_list):
                 
                 if row[0] == "AK5":
                     header_is_AK5 = True
-                    current_pT_squared = (float(row[1])**2 + float(row[2])**2)*float(row[4])**2 #Scale p_T by the JEC factor
+                    current_pT_squared = (float(row[1])**2 + float(row[2])**2)*float(row[5])**2 #Scale p_T by the JEC factor
                     if current_pT_squared > max_pT_squared: #Find max Jet transverse momentum (only updating max if next jets value is larger than current)
                         max_pT_squared = current_pT_squared
                         Hardest_Jet_row = copy.deepcopy(row)
@@ -78,7 +78,7 @@ def get_line_no_trigger_fired(MOD_file, line_no_list):
         if trigger[0] != "default" and max_pT_squared != 0.:
     
             #Find trigger range for max pt and check if the hardest trigger fired matches
-            '''trigger_for_max_pT = "default"
+            '''trigger_for_max_pT = "default" #Old incorrect method? --delete
             for key in squared_trigger_ranges:
                 if squared_trigger_ranges[key] <= max_pT_squared and squared_trigger_ranges[key] > squared_trigger_ranges[trigger_for_max_pT]:
                     trigger_for_max_pT = key
@@ -87,7 +87,11 @@ def get_line_no_trigger_fired(MOD_file, line_no_list):
                 #apply 'loose' JQC to the hardest Jet, and only accept events whose hardest jet satisfies them
                 if float(Hardest_Jet_row[7]) > 1. and float(Hardest_Jet_row[8]) > 0. and float(Hardest_Jet_row[9]) < 0.99 and float(Hardest_Jet_row[10]) < 0.99 and float(Hardest_Jet_row[11]) > 0. and float(Hardest_Jet_row[12]) < 0.99:
                     line_no_list_trigger_fired.append([event[0], event[1], trigger[0]]) #Adding event to list if creteria are satisfied
-    
+                    #Print check ---to delete
+                    if len(line_no_list_trigger_fired) < 10:
+                        print(squared_trigger_ranges[trigger[0]],max_pT_squared,[event[0], event[1], trigger[0]])
+                        
+                        
     return line_no_list_trigger_fired
 
 def next_MOD_file(i, MOD_file):
