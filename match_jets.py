@@ -5,33 +5,28 @@
 
 import numpy as np
 
-def match_jets(pFJ, pAK5, comments=False):
+def match_jets(pAK5, pFJ, comments=False):
     
-    if len(pAK5) != len(pFJ):
-        if comments:
-            print('Warning: pFJ and pAK5 are different lengths. Matching failed.')
-        return False
-    
-    pFJ_nomatch = []
+    pAK5_nomatch = []
     
     #Perform initial sort by energy to speed up checks
-    pFJ  = sorted(pFJ,  key=lambda i: i[3])
-    pAK5 = sorted(pAK5, key=lambda i: i[3])
+    pAK5  = sorted(pAK5,  key=lambda i: i[3])
+    pFJ = sorted(pFJ, key=lambda i: i[3])
     
     #values in MeV
-    for pi in pFJ:
+    for pi in pAK5:
         #find all "close" jets (within 1 MeV)
         jclose = []
         j = 0
         
-        for pj in pAK5:
+        for pj in pFJ:
             if np.abs(pi[0] - pj[0]) <= 1. and np.abs(pi[1] - pj[1]) <= 1. and np.abs(pi[2] - pj[2]) <= 1. and np.abs(pi[3] - pj[3]) <= 1.:
                 jclose.append(j)
             j += 1
         
         #Case 1: more than one match
         if len(jclose) > 1:
-            pclose = [pAK5[jj] for jj in jclose]
+            pclose = [pFJ[jj] for jj in jclose]
             
             #compare jets by mass squared
             mi     =  pi[3]**2 - pi[2]**2 - pi[1]**2 - pi[0]**2
@@ -54,22 +49,25 @@ def match_jets(pFJ, pAK5, comments=False):
         #Case 2: 1:1 matched
         if len(jclose) == 1:
             if comments:
-                print('Successfully matched ' + str(pi) + ' with ' + str(pAK5[jclose[0]]) + ".")
-            pAK5.pop(jclose[0])
+                print('Successfully matched ' + str(pi) + ' with ' + str(pFJ[jclose[0]]) + ".")
+            pFJ.pop(jclose[0])
         
         #Case 3: no match
         if len(jclose) == 0:
-            pFJ_nomatch.append(pi)
+            pAK5_nomatch.append(pi)
     
     #Return whether match process was successful
-    if len(pAK5) > 0:
+    if len(pFJ_nomatch) > 0:
         if comments:
             print('Warning: the following FJCs could not be matched:')
-            for pi in pFJ_nomatch:
-                print(pi)
-            print('Warning: the following AK5s could not be matched:')
-            for pj in pAK5:
+            for pj in pFJ:
                 print(pj)
+    
+    if len(pAK5_nomatch) > 0:
+        if comments:
+            print('Warning: the following AK5s could not be matched:')
+            for pi in pAK5_nomatch:
+                print(pi)
         return False
     
     if comments:

@@ -13,8 +13,9 @@ def Jet_generator(MOD_file,line_no_list):
     """ Inputs: MOD_file and the list of all good events
         Outputs: the updated list of good events and the respective FJ jets' 4-vectors for those events
     """
-    #Updated format of good events: [first line, second line, trigger, [list of jets]]
+    #Return format: [[first line, second line, trigger], [list of jets]]
     Jet_corrected_line_no_list = [] 
+    all_jets = []
     
     #Initialise csv reader at zeroth line with index i=-1
     i = -1
@@ -49,13 +50,24 @@ def Jet_generator(MOD_file,line_no_list):
         jets = jet_def(Particles)
         jets_list = [[x.px(),x.py(),x.pz(),x.e(),x.rap(),x.phi(),len(x.constituents())] for x in jets]
         
+      
         #Check to see if FJ jets correspond to AK5 jets, if they don't ignore/remove event, if they do save the event and FJ jet 4-vectors
         matching_output = match_jets2(AK5s,jets_list)
         if matching_output[0] == True:
             Jet_corrected_line_no_list.append([event[0],event[1],event[2]]) #,jets_list])  READD IN the output of hardest 2 jets ##############
-    
-    return Jet_corrected_line_no_list
 
+        '''Someone elses edits (not ed)
+        if 1:#match_jets(pFJ,AK5s):
+            Jet_corrected_line_no_list.append([event[0],event[1],event[2]])
+            for jet in jets:
+                all_jets.append(jet)
+
+        if True: #match_jets(AK5s,jets_list) == True:
+            Jet_corrected_line_no_list.append([event[0],event[1],event[2]]) #,jets_list])  READD IN TO PLOT WITH FJ JETS!! ##############
+    
+        '''
+
+    return [Jet_corrected_line_no_list, all_jets]
 
 #Define function to increment the current row in consideration in the input MOD file, and respective counter
 def next_MOD_file(i, MOD_file):

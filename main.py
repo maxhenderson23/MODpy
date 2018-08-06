@@ -10,6 +10,7 @@ import time
 import lumi
 import trigger
 import FJ_Jet_generator
+import Jet
 import load_events
 import plot
 import sys
@@ -69,17 +70,21 @@ for data_file in data_files_2011:
 print('Number events past trigger check:',len(valid_event_line_no_2011[data_files_2011[0]])+len(valid_event_line_no_2011[data_files_2011[1]]))
 
 ############################ LOAD VALID EVENT LINE NO AND FJ JETS AFTER FJ CROSSCHECK ############################
+    
+jets = {}
 
 for data_file in data_files_2011:
     raw_MOD_file = open(data_file)
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
+    [valid_event_line_no_2011[data_file], jets[data_file]] = FJ_Jet_generator.Jet_generator(MOD_file, valid_event_line_no_2011[data_file])
+
     valid_event_line_no_2011[data_file] = FJ_Jet_generator.Jet_generator(MOD_file, valid_event_line_no_2011[data_file])
 
 print('Number events past FJ check:',len(valid_event_line_no_2011[data_files_2011[0]])+len(valid_event_line_no_2011[data_files_2011[1]]))
 
-
 ############################ LOAD EVENTS INTO EVENT LIST ############################
 
+event_list = []
 event_list_with_trigger = []
 
 load_events.load_valid_event_entries(valid_event_line_no_2011, event_list_with_trigger, "PFC", ["px", "total_px", "e", "total_e"])
@@ -88,8 +93,8 @@ load_events.load_valid_event_entries(valid_event_line_no_2011, event_list_with_t
 
 pl.close('all')
 
-plot.plot('Total Momentum components of Jets per Event Histogram', 'Total Momentum components of Jets per Event', [[event["total_px"] for event in event_list], [event["total_px"] for event in event_list_with_trigger]], ['$p_x$ before trigger', '$p_x$ after trigger'], ['Momenta Component Totals per Event $[GeV]$', 'Frequency density $[GeV^{-1}]$'], True)
-plot.plot('Total Momentum components of Jets per Event Histogram', 'Total Momentum components of Jets per Event', [[event["total_e"] for event in event_list], [event["total_e"] for event in event_list_with_trigger]], ['$E$ before trigger', '$E$ after trigger'], ['Momenta Component Totals per Event $[GeV]$', 'Frequency density $[GeV^{-1}]$'], True)
+plot.plot('Total Momentum components of Jets per Event', [[event["total_px"] for event in event_list], [event["total_px"] for event in event_list_with_trigger]], ['$p_x$ before trigger', '$p_x$ after trigger'], ['Momenta Component Totals per Event $[GeV]$', 'Frequency density $[GeV^{-1}]$'], True)
+plot.plot('Total Momentum components of Jets per Event', [[event["total_e"] for event in event_list], [event["total_e"] for event in event_list_with_trigger]], ['$E$ before trigger', '$E$ after trigger'], ['Momenta Component Totals per Event $[GeV]$', 'Frequency density $[GeV^{-1}]$'], True)
 
 #Print final script run time
 print('Script runtime:',time.clock()-start_time)
