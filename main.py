@@ -76,8 +76,7 @@ jets = {}
 for data_file in data_files_2011:
     raw_MOD_file = open(data_file)
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
-    [valid_event_line_no_2011[data_file], jets[data_file]] = FJ_Jet_generator.Jet_generator(MOD_file, valid_event_line_no_2011[data_file])
-
+    #[valid_event_line_no_2011[data_file], jets[data_file]] = FJ_Jet_generator.Jet_generator(MOD_file, valid_event_line_no_2011[data_file])
     valid_event_line_no_2011[data_file] = FJ_Jet_generator.Jet_generator(MOD_file, valid_event_line_no_2011[data_file])
 
 print('Number events past FJ check:',len(valid_event_line_no_2011[data_files_2011[0]])+len(valid_event_line_no_2011[data_files_2011[1]]))

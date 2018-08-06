@@ -67,7 +67,7 @@ def Jet_generator(MOD_file,line_no_list):
     
         '''
 
-    return [Jet_corrected_line_no_list, all_jets]
+    return Jet_corrected_line_no_list #[Jet_corrected_line_no_list, all_jets]
 
 #Define function to increment the current row in consideration in the input MOD file, and respective counter
 def next_MOD_file(i, MOD_file):
