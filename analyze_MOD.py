@@ -28,3 +28,6 @@ def analyze_MOD(MOD_file, lumi_runs_and_blocks, total_event_limit):
             if count%1000 == 0 and count>0:
                 print("writing event No. " + str(count)+" and the line # is (" + str(line_no_list[-1][0]) + ", " + str(line_no_list[-1][1]) + ")")
             continue
+        
+        if row[0] == "PFC":
+            
