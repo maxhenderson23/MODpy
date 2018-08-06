@@ -22,6 +22,17 @@ def analyze_MOD(MOD_file, lumi_runs_and_blocks, total_event_limit):
     
     for row in MOD_file:
         
+        if section_name == "Cond":
+            if lumi.search_lumi((row[1], row[3]), lumi_runs_and_blocks):
+                good_event = True
+                current_hardest_AK5, current_second_AK5, current_jets, current_prescale, current_jec, current_jet_quality, current_trigger_fired = init_event_vars()
+            else:
+                good_event = False
+            continue
+        
+        if not good_event:
+            continue
+        
         if row[0] == '#':
             #If no trigger is fired, this event is bad
             if section_name == "Trig":
@@ -38,17 +49,6 @@ def analyze_MOD(MOD_file, lumi_runs_and_blocks, total_event_limit):
                     good_event = False
                     continue
             section_name = row[1]
-            continue
-        
-        if section_name == "Cond":
-            if lumi.search_lumi((row[1], row[3]), lumi_runs_and_blocks):
-                good_event = True
-                current_hardest_AK5, current_second_AK5, current_jets, current_prescale, current_jec, current_jet_quality, current_trigger_fired = init_event_vars()
-            else:
-                good_event = False
-            continue
-        
-        if not good_event:
             continue
         
         if section_name == "Trig":
@@ -81,4 +81,6 @@ def analyze_MOD(MOD_file, lumi_runs_and_blocks, total_event_limit):
             write_dat_event(datfile, event)
             
             continue
+        
+        if row[0] == "PFC":
 
