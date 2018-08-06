@@ -2,7 +2,7 @@
 #regeneraqtes all the jets from the PFC 4-vectors, tests the compatibility to the AK5s,
 #and saves the good event jets
 import fastjet as fj
-from match_jets import match_jets
+from match_jets import match_jets2
 
 #Define FastJet parameters, and the algorithm
 R = 0.5
@@ -21,10 +21,8 @@ def Jet_generator(MOD_file,line_no_list):
     row = []
     
     
-    list_counter = 0 ########
     #Loop through all listed events in MOD_file
     for (idx, event) in enumerate(line_no_list):
-        list_counter += 1 #########
         
         #Iterate to the first line of current event
         while i < event[0]:
@@ -37,8 +35,8 @@ def Jet_generator(MOD_file,line_no_list):
         while i < event[1]:
             
             if row[0] == "AK5":
-                #Add the AK5 4-vectors to a list for comparison with FJ jets
-                AK5s.append([float(row[1]),float(row[2]),float(row[3]),float(row[4])])
+                #Add the AK5 4-vectors (sclaed by JEC), with last entry the # constituents to a list for comparison with FJ jets
+                AK5s.append([float(row[1])*float(row[5]),float(row[2])*float(row[5]),float(row[3])*float(row[5]),float(row[4])*float(row[5]),int(row[7])])
             
             if row[0] == "PFC":
                 #Add the particle 4-vector (px,py,pz,E) as a pseudo-jet 
@@ -49,25 +47,12 @@ def Jet_generator(MOD_file,line_no_list):
             
         #Create the jets via FastJet algorithm
         jets = jet_def(Particles)
-        jets_list = [[x.px(),x.py(),x.pz(),x.e()] for x in jets]
+        jets_list = [[x.px(),x.py(),x.pz(),x.e(),x.rap(),x.phi(),len(x.constituents())] for x in jets]
         
         #Check to see if FJ jets correspond to AK5 jets, if they don't ignore/remove event, if they do save the event and FJ jet 4-vectors
-        if True: #match_jets(AK5s,jets_list) == True:
-            Jet_corrected_line_no_list.append([event[0],event[1],event[2]]) #,jets_list])  READD IN TO PLOT WITH FJ JETS!! ##############
-    
-        '''        
-        if list_counter < 5: #################
-            print(list_counter)
-            #print(Particles)
-            print()
-            print('AK5s: ',AK5s)
-            print()
-            print('fj jets:' ,jets_list)
-            print()
-            print('corrected jet list: ',Jet_corrected_line_no_list)
-            print('end of print')
-            print()
-    '''
+        matching_output = match_jets2(AK5s,jets_list)
+        if matching_output[0] == True:
+            Jet_corrected_line_no_list.append([event[0],event[1],event[2]]) #,jets_list])  READD IN the output of hardest 2 jets ##############
     
     return Jet_corrected_line_no_list
 

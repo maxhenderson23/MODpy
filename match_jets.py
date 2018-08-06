@@ -76,6 +76,79 @@ def match_jets(pFJ, pAK5, comments=False):
         print('All FJCs and AK5s successfully matched.')
     return True
 
+
+#Simplified function for only checking hardest 2 jets
+def match_jets2(pAK5,pFJ):
+    """ Function to check fastjet generated 2 hardest jets, match the AK5 two hardest jets in (rap,phi) multiplicity and 4-vector to within 1MeV
+    Input both jet lists
+    Output True or False if there is a match"""
+    #Find trigger (hardest pT) jet, and second hardest jet, and their respective indices in the input lists
+    #Initialise max values and respective indices
+    AK5_maxpT_squared = 0.
+    AK5_maxpT_index = 0
+    AK5_secmaxpT_squared = 0.
+    AK5_secmaxpT_index = 0
+    #loop through AK5 jets
+    for index in range(len(pAK5)):
+        #Find the pT of the current jet
+        current_pT_squared = (pAK5[index][0]**2+pAK5[index][1]**2)
+        #Compare pT to current max, if larger update first and second values/indices
+        if current_pT_squared > AK5_maxpT_squared:
+            AK5_secmaxpT_squared = AK5_maxpT_squared
+            AK5_secmax_index = AK5_maxpT_index
+            AK5_maxpT_squared = current_pT_squared
+            AK5_maxpT_index = index
+        #Otherwise just compare to second, if larger update this
+        elif current_pT_squared > AK5_secmaxpT_squared:
+            AK5_secmaxpT_squared = current_pT_squared
+            AK5_secmax_index = index
+            
+    #Define these 2 hardest jet rapidity and phi
+    AK5_hardest_rap = np.arctanh(pAK5[AK5_maxpT_index][2]/pAK5[AK5_maxpT_index][3])
+    AK5_hardest_phi = np.arctan2(pAK5[AK5_maxpT_index][1],pAK5[AK5_maxpT_index][0])
+    AK5_sechardest_rap = np.arctanh(pAK5[AK5_secmax_index][2]/pAK5[AK5_secmax_index][3])
+    AK5_sechardest_phi = np.arctan2(pAK5[AK5_secmax_index][1],pAK5[AK5_secmax_index][0])
+
+ 
+    #Initialise with arbitrary high values
+    min_delta_R_sq1 = 1000000.
+    min_delta_R_sq2 = 1000000.
+    min_delta_R_sq1_save2 = 1000000.
+    fj_hardest_index = 0
+
+    #Loop through all fj jets
+    for fj_index in range(len(pFJ)):
+        #Calculate the minimum azimuth difference between the current fj jet and AK5 hardest 2 jets
+        phi1 = pFJ[fj_index][5]-AK5_hardest_phi
+        phi2 = pFJ[fj_index][5]-AK5_sechardest_phi
+        delta_phi1 = min([phi1,phi1+2*np.pi,phi1-2*np.pi],key=abs)
+        delta_phi2 = min([phi2,phi2+2*np.pi,phi2-2*np.pi],key=abs)
+        #Calculate the delR squared values to the hardest 2 AK5 jets
+        current_delta_R_sq1 = (pFJ[fj_index][4]-AK5_hardest_rap)**2+delta_phi1**2
+        current_delta_R_sq2 = (pFJ[fj_index][4]-AK5_sechardest_rap)**2+delta_phi2**2
+        #Check if new delR1 is less than minimum, if so save it
+        if current_delta_R_sq1 < min_delta_R_sq1:
+            #If delR1 min is being updated, check to see if its old value could update the delR2 value, if so update it also with the old value
+            if min_delta_R_sq1_save2 < min_delta_R_sq2:
+                min_delta_R_sq2 = min_delta_R_sq2
+                fj_sechardest_index = fj_hardest_index
+            min_delta_R_sq1 = current_delta_R_sq1
+            min_delta_R_sq1_save2 = current_delta_R_sq2
+            fj_hardest_index = fj_index
+        #Otherwise directly compare to delR2 value and update
+        elif current_delta_R_sq2 < min_delta_R_sq2:
+            min_delta_R_sq2 = current_delta_R_sq2
+            fj_sechardest_index = fj_index
+    
+    #Check if good event: constituents, 4-momenta... if good return True and the indices of hardest 2 fastjet jets
+    if np.abs(pFJ[fj_hardest_index][6]-pAK5[AK5_maxpT_index][4]) > 0.1 and np.abs(pFJ[fj_hardest_index][0]-pAK5[AK5_maxpT_index][0]) > 0.001 and np.abs(pFJ[fj_hardest_index][1]-pAK5[AK5_maxpT_index][1]) > 0.001 and np.abs(pFJ[fj_hardest_index][2]-pAK5[AK5_maxpT_index][2]) > 0.001 and np.abs(pFJ[fj_hardest_index][3]-pAK5[AK5_maxpT_index][3]) > 0.001 and np.abs(pFJ[fj_sechardest_index][6]-pAK5[AK5_secmaxpT_index][4]) > 0.1 and np.abs(pFJ[fj_sechardest_index][0]-pAK5[AK5_secmaxpT_index][0]) > 0.001 and np.abs(pFJ[fj_sechardest_index][1]-pAK5[AK5_secmaxpT_index][1]) > 0.001 and np.abs(pFJ[fj_sechardest_index][2]-pAK5[AK5_secmaxpT_index][2]) > 0.001 and np.abs(pFJ[fj_sechardest_index][3]-pAK5[AK5_secmaxpT_index][3]) > 0.001:
+        return [False,0,0]
+    else:
+        return [True,fj_hardest_index,fj_sechardest_index]
+
+
+
+
 '''
 #Checks for match_jets
 #2/2 matches
