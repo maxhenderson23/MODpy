@@ -21,10 +21,13 @@ def Jet_generator(MOD_file,line_no_list):
     #Initialise csv reader at zeroth line with index i=-1
     i = -1
     row = []
-
+    
+    
+    list_counter = 0 ########
     #Loop through all listed events in MOD_file
     for (idx, event) in enumerate(line_no_list):
-    
+        list_counter += 1 #########
+        
         #Iterate to the first line of current event
         while i < event[0]:
             (i, row) = next_MOD_file(i, MOD_file) #End of iteration
@@ -48,14 +51,34 @@ def Jet_generator(MOD_file,line_no_list):
             
         #Create the jets via FastJet algorithm
         jets = jet_def(Particles)
+        jets_list = [[x.px(),x.py(),x.pz(),x.e()] for x in jets]
         
         #pFJ = [[jet.px(), jet.py(), jet.pz(), jet.e()] for jet in jets]
         
         #Check to see if FJ jets correspond to AK5 jets, if they don't ignore/remove event, if they do save the event and FJ jet 4-vectors
+<<<<<<< HEAD
         if 1:#match_jets(pFJ,AK5s):
             Jet_corrected_line_no_list.append([event[0],event[1],event[2]])
             for jet in jets:
                 all_jets.append(jet)
+=======
+        if True: #match_jets(AK5s,jets_list) == True:
+            Jet_corrected_line_no_list.append([event[0],event[1],event[2]]) #,jets_list])  READD IN TO PLOT WITH FJ JETS!! ##############
+    
+        '''        
+        if list_counter < 5: #################
+            print(list_counter)
+            #print(Particles)
+            print()
+            print('AK5s: ',AK5s)
+            print()
+            print('fj jets:' ,jets_list)
+            print()
+            print('corrected jet list: ',Jet_corrected_line_no_list)
+            print('end of print')
+            print()
+    '''
+>>>>>>> f77114df7bdc8d984a0d8f760483945f32078cce
     
     return [Jet_corrected_line_no_list, all_jets]
 

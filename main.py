@@ -55,6 +55,11 @@ for data_file in data_files_2011:
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
     total_event_count += lumi.get_line_no_good_lumi(MOD_file, valid_event_line_no_2011[data_file], lumi_runs_and_blocks, total_event_limit - total_event_count)
 
+############################ LOAD EVENTS INTO EVENT LIST ############################
+
+print('Number events past lumi check:',len(valid_event_line_no_2011[data_files_2011[0]])+len(valid_event_line_no_2011[data_files_2011[1]]))
+event_list = []
+
 ############################ LOAD VALID EVENT LINE NO AFTER TRIGGER AND JQC ############################
 
 for data_file in data_files_2011:
@@ -62,6 +67,8 @@ for data_file in data_files_2011:
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
     valid_event_line_no_2011[data_file] = trigger.get_line_no_trigger_fired(MOD_file, valid_event_line_no_2011[data_file])
     
+print('Number events past trigger check:',len(valid_event_line_no_2011[data_files_2011[0]])+len(valid_event_line_no_2011[data_files_2011[1]]))
+
 ############################ LOAD VALID EVENT LINE NO AND FJ JETS AFTER FJ CROSSCHECK ############################
     
 jets = {}
@@ -70,15 +77,11 @@ for data_file in data_files_2011:
     raw_MOD_file = open(data_file)
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
     [valid_event_line_no_2011[data_file], jets[data_file]] = FJ_Jet_generator.Jet_generator(MOD_file, valid_event_line_no_2011[data_file])
-    
-############################ PLot JETS ############################
-    
-    plot.plot('Mass spectrum', [[j.m() for j in jets[data_file]]], ['CMS OpenData'], ['$m$ [GeV]','Frequency density [GeV$^{-1}$]'], True)
-    plot.plot('Multiplicity spectrum', [[len(j.constituents()) for j in jets[data_file]]], ['CMS OpenData'], ['Multiplicity','Frequency density'], True)
-    plot.plot('Transverse momentum spectrum', [[j.pt() for j in jets[data_file]]], ['CMS OpenData'], ['$pT$ [GeV]','Frequency density [GeV$^{-1}$]'], True)
-    plot.plot('Rapidity spectrum', [[j.rap() for j in jets[data_file]],[j.eta() for j in jets[data_file]]], ['Rapidity, $y$','Pseudorapidity, $\eta$'], [' ','Frequency density'], False)
-    plot.plot('Azimuth spectrum', [[j.phi() for j in jets[data_file]]], ['CMS OpenData'], ['$\phi$','Frequency density'], False)
-    
+
+    valid_event_line_no_2011[data_file] = FJ_Jet_generator.Jet_generator(MOD_file, valid_event_line_no_2011[data_file])
+
+print('Number events past FJ check:',len(valid_event_line_no_2011[data_files_2011[0]])+len(valid_event_line_no_2011[data_files_2011[1]]))
+
 ############################ LOAD EVENTS INTO EVENT LIST ############################
 
 event_list = []
