@@ -1,5 +1,5 @@
 class Event:
-    def __init__(self, jets, prescale, jec, jet_quality, trigger_fired):
+    def __init__(self, jets, prescale, jec, jet_quality = -1, trigger_fired = 'nan'):
         self.__jets          = jets
         self.__prescale      = prescale
         self.__jec           = jec
@@ -35,3 +35,9 @@ class Event:
     
     def trigger_fired(self):
         return self.__trigger_fired
+    
+    def set_jet_quality(self, jet_quality):
+        self.__jet_quality = jet_quality
+    
+    def set_trigger_fired(self, trigger_fired):
+        self.__trigger_fired = trigger_fired

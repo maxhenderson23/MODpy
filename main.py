@@ -41,17 +41,10 @@ try:
 except:
     total_event_limit = -1
 
-############################ LOAD VALID EVENT LINE NO AFTER LUMI ############################
-
-#Dictionary of MOD file directories, the keys are directories, and values are lists of valid events in that directory
-#total event count counts all events (including invalid event), and is used to calculate cross section
-valid_event_line_no_2011 = {}
-total_event_count = 0
+############################ ITERATE THROUGH MOD FILE ############################
 
 for data_file in data_files_2011:
-    valid_event_line_no_2011[data_file] = []
-    
-    raw_MOD_file = open(data_file)
+    analyze_MOD(open(data_file), lumi_runs_and_blocks, total_event_limit)
     MOD_file = csv.reader(raw_MOD_file, delimiter=' ', skipinitialspace = 1)
     total_event_count += lumi.get_line_no_good_lumi(MOD_file, valid_event_line_no_2011[data_file], lumi_runs_and_blocks, total_event_limit - total_event_count)
 
