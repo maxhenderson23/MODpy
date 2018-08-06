@@ -64,7 +64,7 @@ def get_line_no_trigger_fired(MOD_file, line_no_list):
                 
                 if row[0] == "AK5":
                     header_is_AK5 = True
-                    current_pT_squared = (float(row[1])**2 + float(row[2])**2)*float(row[4])**2 #Scale p_T by the JEC factor
+                    current_pT_squared = (float(row[1])**2 + float(row[2])**2)*float(row[5])**2 #Scale p_T by the JEC factor
                     if current_pT_squared > max_pT_squared: #Find max Jet transverse momentum (only updating max if next jets value is larger than current)
                         max_pT_squared = current_pT_squared
                         Hardest_Jet_row = copy.deepcopy(row)

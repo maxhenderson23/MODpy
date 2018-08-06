@@ -9,10 +9,13 @@ import lumi
 from ast import literal_eval as make_tuple
 from operator import add
 import csv
+import math 
 
 default_range = {"hardest_pT": (0, 2000)}
 default_title = {"hardest_pT": "hardest $p_T$"}
 default_axis_labels = {"hardest_pT": ("hardest $p_T$ $[GeV]$", "diff. cross-section $\sigma$ $[\mu b/GeV]$")}
+
+prescale_factors = {"HLT_Jet30": 1, "HLT_Jet60": 1, "HLT_Jet80": 1, "HLT_Jet110": 1, "HLT_Jet150": 1, "HLT_Jet190": 1, "HLT_Jet240": 1, "HLT_Jet300": 1, "HLT_Jet370": 1}
 
 def load_effective_lumi(effective_lumi_file_dir, data_files):
     data_file_list = [data_file.replace(".dat", ".mod") for data_file in data_files]
@@ -32,6 +35,7 @@ def load_effective_lumi(effective_lumi_file_dir, data_files):
 def read_dat_to_list(effective_lumi_dic_for_DAT_file, DAT_file):
     var_list = []
     scale_list = []
+    prescale_list = []
     
     var_index = None
     trigger_fired_index = None
@@ -55,12 +59,9 @@ def read_dat_to_list(effective_lumi_dic_for_DAT_file, DAT_file):
         else:
             var_list.append(float(row[var_index]))
             scale_list.append(scaling_factors[row[trigger_fired_index]])
+            prescale_list.append(prescale_factors[row[trigger_fired_index]])
     
-    return (var_list, scale_list)
-
-def standard_errors(no_of_events, data_by_cross_section):
-    total_cross_section = float(95.35e+03)
-    return np.sqrt([x*(total_cross_section-x)/no_of_events for x in data_by_cross_section])
+    return (var_list, scale_list, prescale_list)
 
 ##################################################################################################################################################################################
 
@@ -75,7 +76,8 @@ var_range = default_range[var_name]
 var_title = default_title[var_name]
 var_x_label, var_y_label = default_axis_labels[var_name]
 y_scale_log = True
-with_error_bar = False
+with_error_bar = True
+no_of_bins = 100
 
 ######################
 
@@ -91,36 +93,50 @@ for (i, arg) in enumerate(sys.argv):
         if sys.argv[i+1] == "False":
             y_scale_log = False
     elif arg == "--error_bar":
-        if sys.argv[i+1] != "False":
-            y_scale_log = True
+        if sys.argv[i+1] == "False":
+            with_error_bar = False
+    elif arg == "--bins":
+        try:
+            no_of_bins = int(sys.argv[i+1])
+        except:
+            print("please enter valid number of bins")
+            sys.exit()
 
 
 scaling_factors = load_effective_lumi("./effective_luminosity_by_trigger.csv", data_files)
 
-no_of_bins = 100
 hist_data = []
 bin_edges = []
-no_of_events = 0
+no_of_events_in_bins = []
 
 for i in range(no_of_bins):
     hist_data.append(0.0)
+    no_of_events_in_bins.append(0.0)
 
 for data_file in data_files:
     DAT_file = csv.reader(open(input_directory + data_file), delimiter=' ', skipinitialspace = 1)
 
-    (var_list, scale_list) = read_dat_to_list(scaling_factors, DAT_file)
+    (var_list, scale_list, prescale_list) = read_dat_to_list(scaling_factors, DAT_file)
     (current_hist_data, bin_edges) = np.histogram(var_list, bins=no_of_bins, range = var_range, weights = [x*no_of_bins/(var_range[1]-var_range[0]) for x in scale_list])
     hist_data = list(map(add, current_hist_data, hist_data))
-    no_of_events += len(var_list)
+    (no_of_events_in_bins_for_current_MOD, whatever) = np.histogram(var_list, bins=no_of_bins, range = var_range, weights = prescale_list)
+    no_of_events_in_bins = list(map(add, no_of_events_in_bins, no_of_events_in_bins_for_current_MOD))
 
-print("there are " + str(no_of_events) + " events ")
+print("there are " + str(int(sum(no_of_events_in_bins))) + " events ")
 
 pl.figure(var_title)
 pl.title(var_title)
 if with_error_bar:
-    pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=standard_errors(no_of_events, hist_data), label='', color='r')
+    y_error = []
+    for (sigma, n) in zip(hist_data, no_of_events_in_bins):
+        if n <= 0.0:
+            y_error.append(0.0)
+        else:
+            y_error.append(sigma/math.sqrt(n))
+    
+    pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=y_error, label=var_title,fmt = 'r.')
 else:
-    pl.plot((bin_edges[:-1] + bin_edges[1:])/2, hist_data, label='', color='r')
+    pl.plot((bin_edges[:-1] + bin_edges[1:])/2, hist_data, label=var_title, color='r')
 pl.xlabel(var_x_label)
 pl.ylabel(var_y_label)
 if y_scale_log:
