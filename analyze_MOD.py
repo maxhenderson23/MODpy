@@ -82,7 +82,15 @@ def analyze_MOD(MOD_file, lumi_runs_and_blocks, total_event_limit):
                         print("loose JQC failed, exiting event")
                     continue
                 else:
-                    current_jet_quality = 1
+                    #Check tight JQC criteria
+                    if float(current_hardest_AK5[7]) > 1. or float(current_hardest_AK5[8]) > 0. or float(current_hardest_AK5[9]) < 0.9 or float(current_hardest_AK5[10]) < 0.9 or float(current_hardest_AK5[11]) > 0. or float(current_hardest_AK5[12]) < 0.99:
+                        current_jet_quality = 3
+                    #Check medium JQC criteria
+                    elif float(current_hardest_AK5[7]) > 1. or float(current_hardest_AK5[8]) > 0. or float(current_hardest_AK5[9]) < 0.95 or float(current_hardest_AK5[10]) < 0.95 or float(current_hardest_AK5[11]) > 0. or float(current_hardest_AK5[12]) < 0.99:
+                        current_jet_quality = 2
+                    #Otherwise is automatically loose JQC, as passed previous test
+                    else:
+                        current_jet_quality = 1
                     if count%k == 0 and count>0:
                         print("the hardest AK5 is ", current_hardest_AK5)
                         print("the current trigger is " + current_trigger_fired)
