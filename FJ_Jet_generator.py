@@ -59,19 +59,6 @@ def Jet_generator(MOD_file,line_no_list):
         if True: #match_jets(AK5s,jets_list) == True:
             Jet_corrected_line_no_list.append([event[0],event[1],event[2]]) #,jets_list])  READD IN TO PLOT WITH FJ JETS!! ##############
     
-        '''        
-        if list_counter < 5: #################
-            print(list_counter)
-            #print(Particles)
-            print()
-            print('AK5s: ',AK5s)
-            print()
-            print('fj jets:' ,jets_list)
-            print()
-            print('corrected jet list: ',Jet_corrected_line_no_list)
-            print('end of print')
-            print()
-    '''
     
     return [Jet_corrected_line_no_list, all_jets]
 
