@@ -140,8 +140,6 @@ def analyze_MOD(MOD_file, lumi_runs_and_blocks, total_event_limit):
             #If did not match event is bad, if matched, save the 2 hardest pseudojet objects
             if matching_output[0] is False:
                 good_event = False
-                print('###########################################################################################################################################################Event rejected, #:',count,'line #:',MOD_file.line_num)
-
                 continue
             else:
                 FJ_hardest = fastjets[matching_output[1]]
