@@ -11,9 +11,9 @@ from operator import add
 import csv
 import math 
 
-default_range = {"hardest_pT": (0, 2000)}
-default_title = {"hardest_pT": "hardest $p_T$"}
-default_axis_labels = {"hardest_pT": ("hardest $p_T$ $[GeV]$", "diff. cross-section $\sigma$ $[\mu b/GeV]$")}
+default_range = {"hardest_pT": (0, 2000), "mul_pre_SD": (0, 100), "hardest_eta": (-5, 5), "hardest_phi": (0, 2*math.pi), "hardest_area": (0.68, 1.1)}
+default_title = {"hardest_pT": "hardest jet $p_T$", "mul_pre_SD": "mul. of the hardest jet", "hardest_eta": "hardest jet $\eta$", "hardest_phi": "hardest jet $\phi$", "hardest_area": "hardest jet area"}
+default_axis_labels = {"hardest_pT": ("hardest jet $p_T$ $[GeV]$", "diff. cross-section $[\mu b/GeV]$"), "mul_pre_SD": ("multiplicity", "diff. cross-section $[\mu b]$"), "hardest_eta": ("hardest jet $\eta$", "diff. cross-section $[\mu b]$"), "hardest_phi": ("hardest jet $\phi$", "diff. cross-section $[\mu b]$"), "hardest_area": ("hardest jet area", "diff. cross-section $[\mu b]$")}
 
 prescale_factors = {"HLT_Jet30": 1, "HLT_Jet60": 1, "HLT_Jet80": 1, "HLT_Jet110": 1, "HLT_Jet150": 1, "HLT_Jet190": 1, "HLT_Jet240": 1, "HLT_Jet300": 1, "HLT_Jet370": 1}
 
@@ -78,6 +78,7 @@ var_x_label, var_y_label = default_axis_labels[var_name]
 y_scale_log = True
 with_error_bar = True
 no_of_bins = 100
+multi = False
 
 ######################
 
@@ -89,18 +90,18 @@ for (i, arg) in enumerate(sys.argv):
         except:
             print("please enter valid range, 'default_range', or a tuple with two entries, do not put empty space in the tuple ")
             sys.exit()
-    elif arg == "--log":
-        if sys.argv[i+1] == "False":
-            y_scale_log = False
-    elif arg == "--error_bar":
-        if sys.argv[i+1] == "False":
-            with_error_bar = False
+    elif arg == "--y_linear":
+        y_scale_log = False
+    elif arg == "--no_error_bar":
+        with_error_bar = False
     elif arg == "--bins":
         try:
             no_of_bins = int(sys.argv[i+1])
         except:
             print("please enter valid number of bins")
             sys.exit()
+    elif arg == "--multi":
+        multi = True
 
 
 scaling_factors = load_effective_lumi("./effective_luminosity_by_trigger.csv", data_files)
