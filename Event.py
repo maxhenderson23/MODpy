@@ -10,7 +10,7 @@ class Event:
         return self.__jets
     
     def mul_pre_SD(self):
-        return len(self.__jets.hardest_jet_constituents())
+        return len(self.__jets[0].constituents())
     
     def hardest_pT(self):
         return self.__jets[0].pt()
@@ -22,7 +22,10 @@ class Event:
         return self.__jets[0].phi()
     
     def hardest_area(self):
-        return self.__jets[0].area()
+        if self.__jets[0].has_area():
+            return self.__jets[0].area()
+        else:
+            return 'nan'
     
     def prescale(self):
         return self.__prescale

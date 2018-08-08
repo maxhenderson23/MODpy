@@ -6,7 +6,7 @@ from Event import Event
 import write_dat
 
 #Read in line numbers (<start>, <end>) of good events into line_no_list
-def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, total_event_limit):
+def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     good_event = True
     count = 0
     valid_event_count = 0
@@ -16,7 +16,6 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, total_event_limit):
     
     #Dictionary of trigger ranges, s.t. key=trigger label, entry=true cut-off range squared
     squared_trigger_ranges = {"default":0., "HLT_Jet30":900., "HLT_Jet60":8100., "HLT_Jet80":12100., "HLT_Jet110":22500., "HLT_Jet150":44100., "HLT_Jet190":72900., "HLT_Jet240":96100., "HLT_Jet300":152100., "HLT_Jet370":230400.}
-    
     
     #Define FastJet parameters, and the algorithm
     R = 0.5
@@ -40,8 +39,6 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, total_event_limit):
             count += 1
             if count%k == 0 and count>0:
                 print("starting to process event # " + str(count))
-            if count == total_event_limit:
-                break
             continue
         
         elif not good_event:
@@ -154,10 +151,12 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, total_event_limit):
                 event = Event([FJ_hardest, FJ_second_hardest], current_prescale, current_jec, current_jet_quality, current_trigger_fired)
                 write_dat.write_dat_event(dat_file, event)
               
-            valid_event_count += 1 
+            if valid_event_count == event_limit:
+                break
+            valid_event_count += 1
             continue
     
-    return 
+    return valid_event_count
 
 #Function to match hardest 2 jets with fastjet jets
 def match_jets(AK5_hardest,AK5_hardest2,pFJ):
