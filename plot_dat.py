@@ -32,7 +32,7 @@ def load_effective_lumi(effective_lumi_file_dir, data_files):
         scaling_factors[x] = 1.0/total_effective_lumi[x]
     return scaling_factors
 
-def read_dat_to_list(effective_lumi_dic_for_DAT_file, DAT_file):
+def read_dat_to_list(effective_lumi_dic_for_DAT_file, DAT_file, eta_range_check_2point4):
     var_list = []
     scale_list = []
     prescale_list = []
@@ -54,9 +54,14 @@ def read_dat_to_list(effective_lumi_dic_for_DAT_file, DAT_file):
             except:
                 print("cannot find 'trigger_fired' variable, check if exit in every .dat file ")
                 sys.exit()
+            try:
+                hardest_eta_index = column_keys.index("hardest_eta")
+            except:
+                print("cannot find 'hardest_eta' variable, check if exit in every .dat file ")
+                sys.exit()
             
             reading_zeroth_line = False
-        else:
+        elif (not eta_range_check_2point4) or -2.4<=float(row[hardest_eta_index])<=2.4:
             var_list.append(float(row[var_index]))
             scale_list.append(scaling_factors[row[trigger_fired_index]])
             prescale_list.append(prescale_factors[row[trigger_fired_index]])
@@ -78,7 +83,8 @@ var_x_label, var_y_label = default_axis_labels[var_name]
 y_scale_log = True
 with_error_bar = True
 no_of_bins = 100
-multi = False
+eta_range_check_2point4 = False
+var_label = "2011 data"
 
 ######################
 
@@ -100,8 +106,8 @@ for (i, arg) in enumerate(sys.argv):
         except:
             print("please enter valid number of bins")
             sys.exit()
-    elif arg == "--multi":
-        multi = True
+    elif arg == "--eta_range_2.4":
+        eta_range_check_2point4 = True
 
 
 scaling_factors = load_effective_lumi("./effective_luminosity_by_trigger.csv", data_files)
@@ -117,7 +123,7 @@ for i in range(no_of_bins):
 for data_file in data_files:
     DAT_file = csv.reader(open(input_directory + data_file), delimiter=' ', skipinitialspace = 1)
 
-    (var_list, scale_list, prescale_list) = read_dat_to_list(scaling_factors, DAT_file)
+    (var_list, scale_list, prescale_list) = read_dat_to_list(scaling_factors, DAT_file, eta_range_check_2point4)
     (current_hist_data, bin_edges) = np.histogram(var_list, bins=no_of_bins, range = var_range, weights = [x*no_of_bins/(var_range[1]-var_range[0]) for x in scale_list])
     hist_data = list(map(add, current_hist_data, hist_data))
     (no_of_events_in_bins_for_current_MOD, whatever) = np.histogram(var_list, bins=no_of_bins, range = var_range, weights = prescale_list)
@@ -125,6 +131,8 @@ for data_file in data_files:
 
 print("there are " + str(int(sum(no_of_events_in_bins))) + " events ")
 
+if eta_range_check_2point4:
+    var_title += " with $|\eta|\leq2.4$"
 pl.figure(var_title)
 pl.title(var_title)
 if with_error_bar:
@@ -135,9 +143,9 @@ if with_error_bar:
         else:
             y_error.append(sigma/math.sqrt(n))
     
-    pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=y_error, label=var_title,fmt = 'r.')
+    pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=y_error, label=var_label,fmt = 'r.')
 else:
-    pl.plot((bin_edges[:-1] + bin_edges[1:])/2, hist_data, label=var_title, color='r')
+    pl.plot((bin_edges[:-1] + bin_edges[1:])/2, hist_data, label=var_label, color='r')
 pl.xlabel(var_x_label)
 pl.ylabel(var_y_label)
 if y_scale_log:
