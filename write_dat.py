@@ -32,8 +32,9 @@ def write_dat_event(writer, event):
         if col == 'prescale':
             dat_row.append(str(event.prescale()))
         elif col == 'mul_pre_SD':
-            dat_row.append(str('not working yet'))
-            #dat_row.append(str(event.mul_pre_SD()))
+            dat_row.append(str(event.mul_pre_SD()))
+        elif col == 'mass_pre_SD':
+            dat_row.append(str(event.mass_pre_SD()))
         elif col == 'hardest_pT':
             dat_row.append(str(event.hardest_pT()))
         elif col == 'hardest_eta':
@@ -41,8 +42,7 @@ def write_dat_event(writer, event):
         elif col == 'hardest_phi':
             dat_row.append(str(event.hardest_phi()))
         elif col == 'hardest_area':
-            dat_row.append(str('not working yet'))
-            #dat_row.append(str(event.hardest_area()))
+            dat_row.append(str(event.hardest_area()))
         elif col == 'jec':
             dat_row.append(str(event.jec()))
         elif col == 'jet_quality':

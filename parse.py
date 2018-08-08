@@ -42,14 +42,18 @@ try:
     total_event_limit = int(sys.argv[3])
 except:
     total_event_limit = -1
+    
+event_limit = total_event_limit
 
 ############################ ANALYZE MOD FILES ############################
 
 #Analyzes MOD files and produces .dat files
 for i in range(len(MOD_files_2011)):
     reader = csv.reader(open(MOD_files_2011[i]), delimiter=' ', skipinitialspace = 1)
+    if os.path.exists(dat_files_2011[i]):
+        os.remove(dat_files_2011[i])
     writer = csv.writer(open(dat_files_2011[i], 'w+'), delimiter=' ')
-    analyze_MOD(reader, writer, lumi_runs_and_blocks, total_event_limit)
+    event_limit -= analyze_MOD(reader, writer, lumi_runs_and_blocks, event_limit)
 
 #Print final script run time
 print('Script runtime:',time.clock() - start_time)
