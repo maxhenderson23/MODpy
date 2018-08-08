@@ -32,7 +32,7 @@ dat_files_2011 = []
 for data_file in data_files:
     if data_file.endswith(".mod"):
         MOD_files_2011.append(input_directory + data_file)
-        dat_files_2011.append(output_directory + data_file.replace('.mod','.dat'))
+        dat_files_2011.append(output_directory + data_file.replace('.mod', '.dat'))
 
 #Load good lumi block numbers
 lumi_runs_and_blocks = lumi.read_lumi_runs_and_blocks("./2011lumibyls.csv")

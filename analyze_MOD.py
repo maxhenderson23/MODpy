@@ -138,7 +138,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             #Run Fastjet checks: create pseudo jets from PFCs, match with hardest AK5s
             fastjets = jet_def(Pseudojet_particles)
             fastjets_observables = [[x.px(),x.py(),x.pz(),x.e(),x.rap(),x.phi(),len(x.constituents())] for x in fastjets]
-            matching_output = match_jets(current_hardest_AK5,current_second_AK5,fastjets_observables)
+            matching_output = match_jets(current_hardest_AK5, current_second_AK5, fastjets_observables)
             
             #If did not match event is bad, if matched, save the 2 hardest pseudojet objects
             if matching_output[0] is False:
@@ -201,7 +201,7 @@ def match_jets(AK5_hardest,AK5_hardest2,pFJ):
             fj_sechardest_index = fj_index
     
     #Check if good event: constituents, 4-momenta... if good return True and the indices of hardest 2 fastjet jets
-    if np.abs(pFJ[fj_hardest_index][6]-float(AK5_hardest[7])) > 0.1 or np.abs(pFJ[fj_hardest_index][0]-float(AK5_hardest[1])) > 0.001 or np.abs(pFJ[fj_hardest_index][1]-float(AK5_hardest[2])) > 0.001 or np.abs(pFJ[fj_hardest_index][2]-float(AK5_hardest[3])) > 0.001 or np.abs(pFJ[fj_hardest_index][3]-float(AK5_hardest[4])) > 0.001 or np.abs(pFJ[fj_sechardest_index][6]-float(AK5_hardest2[7])) > 0.1 or np.abs(pFJ[fj_sechardest_index][0]-float(AK5_hardest2[1])) > 0.001 or np.abs(pFJ[fj_sechardest_index][1]-float(AK5_hardest2[2])) > 0.001 or np.abs(pFJ[fj_sechardest_index][2]-float(AK5_hardest2[3])) > 0.001 or np.abs(pFJ[fj_sechardest_index][3]-float(AK5_hardest2[4])) > 0.001:
+    if np.abs(pFJ[fj_hardest_index][6]-float(AK5_hardest[7])) > 0.001 or np.abs(pFJ[fj_hardest_index][0]-float(AK5_hardest[1])) > 0.001 or np.abs(pFJ[fj_hardest_index][1]-float(AK5_hardest[2])) > 0.001 or np.abs(pFJ[fj_hardest_index][2]-float(AK5_hardest[3])) > 0.001 or np.abs(pFJ[fj_hardest_index][3]-float(AK5_hardest[4])) > 0.001 or np.abs(pFJ[fj_sechardest_index][6]-float(AK5_hardest2[7])) > 0.1 or np.abs(pFJ[fj_sechardest_index][0]-float(AK5_hardest2[1])) > 0.001 or np.abs(pFJ[fj_sechardest_index][1]-float(AK5_hardest2[2])) > 0.001 or np.abs(pFJ[fj_sechardest_index][2]-float(AK5_hardest2[3])) > 0.001 or np.abs(pFJ[fj_sechardest_index][3]-float(AK5_hardest2[4])) > 0.001:
         return [False,0,0]
     else:
         return [True,fj_hardest_index,fj_sechardest_index]
