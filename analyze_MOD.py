@@ -1,12 +1,12 @@
-import csv
 import copy
 import lumi
 import numpy as np
 import fastjet as fj
-
+from Event import Event
+import write_dat
 
 #Read in line numbers (<start>, <end>) of good events into line_no_list
-def analyze_MOD(MOD_file, lumi_runs_and_blocks, total_event_limit):
+def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, total_event_limit):
     good_event = True
     count = 0
     valid_event_count = 0
@@ -28,10 +28,8 @@ def analyze_MOD(MOD_file, lumi_runs_and_blocks, total_event_limit):
         return (["default", 0.0], ["default", 0.0], [], [], 1.0, 1.0, -1, "default")
     #to use this function, copy the next line
     current_hardest_AK5, current_second_AK5, Pseudojet_particles, current_jets, current_prescale, current_jec, current_jet_quality, current_trigger_fired = init_event_vars()
-    
-    """
-    write_dat_header(datfile)
-    """
+
+    write_dat.write_dat_header(dat_file)
     
     for row in MOD_file:
         
@@ -152,19 +150,14 @@ def analyze_MOD(MOD_file, lumi_runs_and_blocks, total_event_limit):
             else:
                 FJ_hardest = fastjets[matching_output[1]]
                 FJ_second_hardest = fastjets[matching_output[2]]
-                """
-                event = Event(current_jets, current_prescale, current_jec, current_jet_quality, current_trigger_fired)
-                write_dat_event(datfile, event)
-                """
-
+                
+                event = Event([FJ_hardest, FJ_second_hardest], current_prescale, current_jec, current_jet_quality, current_trigger_fired)
+                write_dat.write_dat_event(dat_file, event)
+              
             valid_event_count += 1 
             continue
-
-    return valid_event_count
-
-
-
-
+    
+    return 
 
 #Function to match hardest 2 jets with fastjet jets
 def match_jets(AK5_hardest,AK5_hardest2,pFJ):

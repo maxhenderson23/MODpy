@@ -23,18 +23,17 @@ dat_header = ['# Entry', 'prescale', 'multiplicity', 'mul_pre_SD',
               'track_width_post_SD', 'track_thrust_pre_SD',
               'track_thrust_post_SD']
 
-def write_dat_header(file_path):
-    with open(file_path, 'w') as dat:
-        datwriter = csv.writer(dat, delimiter='\t')
-        datwriter.writerow(dat_header)
+def write_dat_header(writer):
+    writer.writerow(dat_header)
 
-def write_dat_event(file_path, event):
+def write_dat_event(writer, event):
     dat_row = ['Entry']
     for col in dat_header:
         if col == 'prescale':
             dat_row.append(str(event.prescale()))
         elif col == 'mul_pre_SD':
-            dat_row.append(str(event.mul_pre_SD()))
+            dat_row.append(str('not working yet'))
+            #dat_row.append(str(event.mul_pre_SD()))
         elif col == 'hardest_pT':
             dat_row.append(str(event.hardest_pT()))
         elif col == 'hardest_eta':
@@ -42,7 +41,8 @@ def write_dat_event(file_path, event):
         elif col == 'hardest_phi':
             dat_row.append(str(event.hardest_phi()))
         elif col == 'hardest_area':
-            dat_row.append(str(event.hardest_area()))
+            dat_row.append(str('not working yet'))
+            #dat_row.append(str(event.hardest_area()))
         elif col == 'jec':
             dat_row.append(str(event.jec()))
         elif col == 'jet_quality':
@@ -52,6 +52,4 @@ def write_dat_event(file_path, event):
         else:
             dat_row.append('nan')
 
-    with open(file_path, 'w') as dat:
-        datwriter = csv.writer(dat, delimiter='\t')
-        datwriter.writerow(dat_row)
+    writer.writerow(dat_row)
