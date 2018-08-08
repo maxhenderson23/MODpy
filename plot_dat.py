@@ -32,7 +32,7 @@ def load_effective_lumi(effective_lumi_file_dir, data_files):
         scaling_factors[x] = 1.0/total_effective_lumi[x]
     return scaling_factors
 
-def read_dat_to_list(effective_lumi_dic_for_DAT_file, DAT_file, eta_range_check_2point4):
+def read_dat_to_list(effective_lumi_dic_for_DAT_file, DAT_file, eta_range_check_2point4, hardest_pT_lower_bound):
     var_list = []
     scale_list = []
     prescale_list = []
@@ -59,9 +59,14 @@ def read_dat_to_list(effective_lumi_dic_for_DAT_file, DAT_file, eta_range_check_
             except:
                 print("cannot find 'hardest_eta' variable, check if exit in every .dat file ")
                 sys.exit()
+            try:
+                hardest_pT_index = column_keys.index("hardest_pT")
+            except:
+                print("cannot find 'hardest_pT' variable, check if exit in every .dat file ")
+                sys.exit()
             
             reading_zeroth_line = False
-        elif (not eta_range_check_2point4) or -2.4<=float(row[hardest_eta_index])<=2.4:
+        elif ((not eta_range_check_2point4) or -2.4<=float(row[hardest_eta_index])<=2.4) and hardest_pT_lower_bound <= float(row[hardest_pT_index]):
             var_list.append(float(row[var_index]))
             scale_list.append(scaling_factors[row[trigger_fired_index]])
             prescale_list.append(prescale_factors[row[trigger_fired_index]])
@@ -84,7 +89,8 @@ y_scale_log = True
 with_error_bar = True
 no_of_bins = 100
 eta_range_check_2point4 = False
-var_label = "2011 data"
+var_label = "CMS 2011 Open Data"
+hardest_pT_lower_bound = 0.0
 
 ######################
 
@@ -108,7 +114,13 @@ for (i, arg) in enumerate(sys.argv):
             sys.exit()
     elif arg == "--eta_range_2.4":
         eta_range_check_2point4 = True
+    elif arg == "--hardest_pT_lower_bound":
+        try:
+            hardest_pT_lower_bound = float(sys.argv[i+1])
+        except:
+            print("please enter valid hardest pT lower bound, it should be a number ")
 
+#####################################################################################################################################################
 
 scaling_factors = load_effective_lumi("./effective_luminosity_by_trigger.csv", data_files)
 
@@ -123,7 +135,7 @@ for i in range(no_of_bins):
 for data_file in data_files:
     DAT_file = csv.reader(open(input_directory + data_file), delimiter=' ', skipinitialspace = 1)
 
-    (var_list, scale_list, prescale_list) = read_dat_to_list(scaling_factors, DAT_file, eta_range_check_2point4)
+    (var_list, scale_list, prescale_list) = read_dat_to_list(scaling_factors, DAT_file, eta_range_check_2point4, hardest_pT_lower_bound)
     (current_hist_data, bin_edges) = np.histogram(var_list, bins=no_of_bins, range = var_range, weights = [x*no_of_bins/(var_range[1]-var_range[0]) for x in scale_list])
     hist_data = list(map(add, current_hist_data, hist_data))
     (no_of_events_in_bins_for_current_MOD, whatever) = np.histogram(var_list, bins=no_of_bins, range = var_range, weights = prescale_list)
@@ -133,6 +145,8 @@ print("there are " + str(int(sum(no_of_events_in_bins))) + " events ")
 
 if eta_range_check_2point4:
     var_title += " with $|\eta|\leq2.4$"
+if (hardest_pT_lower_bound):
+    var_title += " with hardest jet $p_T\geq" + str(int(hardest_pT_lower_bound)) + "$ GeV"
 pl.figure(var_title)
 pl.title(var_title)
 if with_error_bar:
