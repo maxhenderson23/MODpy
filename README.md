@@ -15,3 +15,5 @@ Events where the cross_check is not shown to agree are removed from the list of 
 
 Plotting..... read MOD/dat?... add observables to lists, run np.histogram, plot
 """
+
+mkdir ../MODpy_output/
