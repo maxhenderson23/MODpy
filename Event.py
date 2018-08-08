@@ -12,6 +12,9 @@ class Event:
     def mul_pre_SD(self):
         return len(self.__jets[0].constituents())
     
+    def mass_pre_SD(self):
+        return self.__jets[0].m()
+    
     def hardest_pT(self):
         return self.__jets[0].pt()
     
