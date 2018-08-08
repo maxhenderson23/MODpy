@@ -1,6 +1,6 @@
 import csv
 
-dat_header = ['# Entry', 'prescale', 'multiplicity', 'mul_pre_SD', 
+dat_header = ['#', 'Entry', 'prescale', 'multiplicity', 'mul_pre_SD', 
               'events_being_read', 'hardest_pT', 'jec', 'jet_quality', 
               'hardest_eta', 'crosssection', 'trigger_fired', 
               'hardest_phi', 'hardest_area', 'zg_05', 'mu_05', 'rg_05', 
@@ -27,9 +27,13 @@ def write_dat_header(writer):
     writer.writerow(dat_header)
 
 def write_dat_event(writer, event):
+    
     dat_row = ['Entry']
+    
     for col in dat_header:
-        if col == 'prescale':
+        if col == '#' or col == 'Entry':
+            continue
+        elif col == 'prescale':
             dat_row.append(str(event.prescale()))
         elif col == 'mul_pre_SD':
             dat_row.append(str(event.mul_pre_SD()))
