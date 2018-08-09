@@ -18,8 +18,6 @@ def read_lumi_runs_and_blocks(lum_file_dir):
                 if not block in lumi_runs_and_blocks[run]:
                     lumi_runs_and_blocks[run][block] = float(row[6])
                     count += 1
-                    if count%1000 == 0:
-                        print("writing lum block No. " + str(count))
     return lumi_runs_and_blocks
 
 #Check if the pair run_and_block=(<string run #>, <string block #>) is in lumi_runs_and_blocks

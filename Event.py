@@ -5,7 +5,6 @@ class Event:
         self.__jec           = jec
         self.__jet_quality   = jet_quality
         self.__trigger_fired = trigger_fired
-        print("########################Initialising event, \nhardest pt = " + str(self.__jets[0].pt()) + "\nsecond pt = " + str(self.__jets[1].pt()))
 
     def jets(self):
         return self.__jets
