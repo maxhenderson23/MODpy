@@ -1,0 +1,11 @@
+# basic plot settings
+# ranges are denoted (<lower bound>:<upper bound>)
+# constraint are denoted <var name>:<lower bound>:<upper bound>, bound can be None
+# format: Settings,<var name>,<plot filename>,<plot title>,<x axis text>,<y axis text>,<x range>,<# of bins>,<log scale y axis (True or False)>,<constraint>(, <possibly more constraint>)
+Settings,hardest_pT,hardest jet pT,hardest jet $p_T$,hardest jet $p_T$ $[GeV]$,diff. cross-section $[\mu b/GeV]$,(0:2000),100,True,hardest_pT:90:Infinity,jet_quality:3:Infinity
+
+# plot data 
+# format: Data,<data directory>,<label>,<format>
+# for plot point format see https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot.html for documentation 
+Data,/Users/joe/Desktop/AnalyzerResults/test/,CMS 2011 Open Data,r.
+Data,/Users/joe/Desktop/AnalyzerResults/test_produced_by_MODAnalyzer/,MODAnalyzer,b.
