@@ -3,6 +3,7 @@ import lumi
 import numpy as np
 import fastjet as fj
 from Event import Event
+from AK5 import AK5
 import write_dat
 
 def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
@@ -24,9 +25,10 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     The last entry is pT**2, saved as a floating point variable.'''
     
     def init_event_vars():
-        return (["default", 0.0], ["default", 0.0], [], [], 1.0, 1.0, -1, "default")
+        return (AK5([]), AK5([]), [], [], 1.0, 1.0, -1, "default")
     #to use this function, copy the next line
-    current_hardest_AK5, current_second_AK5, pseudojet_particles, current_jets, current_prescale, current_jec, current_jet_quality, current_trigger_fired = init_event_vars()
+    [ak5_hardest, ak5_second, pseudojet_particles, current_jets, current_prescale,
+    current_jec, current_jet_quality, current_trigger_fired] = init_event_vars()
 
     #Write the .dat header
     write_dat.write_dat_header(dat_file)
@@ -71,34 +73,26 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                     continue
                 
                 #Check that the hardest AK5 matches the highest trigger
-                if squared_trigger_ranges[current_trigger_fired] > current_hardest_AK5[-1]:
+                if squared_trigger_ranges[current_trigger_fired] > ak5_hardest.pT2():
+                    
                     good_event = False
                     if (count-1)%k == 0:
-                        print("the hardest AK5 pT squared is " + str(current_hardest_AK5[-1]) + " and the trigger is " + current_trigger_fired + " with threshold " + str(squared_trigger_ranges[current_trigger_fired]))
+                        print("the hardest AK5 pT squared is " + str(ak5_hardest.pT2()) + " and the trigger is " + current_trigger_fired + " with threshold " + str(squared_trigger_ranges[current_trigger_fired]))
                         print("the hardest AK5 (with JEC) is smaller than the trigger fired, hence this event is rejected, exiting event")
                     continue
                 
                 #Check that the hardest AK5 satisfies loose quality criteria
-                elif float(current_hardest_AK5[7]) <= 1. or float(current_hardest_AK5[8]) <= 0. or float(current_hardest_AK5[9]) >= 0.99 or float(current_hardest_AK5[10]) >= 0.99 or float(current_hardest_AK5[11]) <= 0. or float(current_hardest_AK5[12]) >= 0.99:
+                elif ak5_hardest.calc_quality() > 0:
                     good_event = False
                     if (count-1)%k == 0:
-                        print("the hardest AK5 is ", current_hardest_AK5)
+                        print("the hardest AK5 is ", ak5_hardest)
                         print("loose JQC failed, exiting event")
                     continue
                 else:
-                    #For jets that have passed loose quality criteria, check tight quality criteria
-                    if float(current_hardest_AK5[7]) > 1. and float(current_hardest_AK5[8]) > 0. and float(current_hardest_AK5[9]) < 0.9 and float(current_hardest_AK5[10]) < 0.9 and float(current_hardest_AK5[11]) > 0. and float(current_hardest_AK5[12]) < 0.99:
-                        current_jet_quality = 3
-                        
-                    #Check medium quality criteria
-                    elif float(current_hardest_AK5[7]) > 1. and float(current_hardest_AK5[8]) > 0. and float(current_hardest_AK5[9]) < 0.95 and float(current_hardest_AK5[10]) < 0.95 and float(current_hardest_AK5[11]) > 0. and float(current_hardest_AK5[12]) < 0.99:
-                        current_jet_quality = 2
-                    else:
-                        current_jet_quality = 1
                     if (count%k-1) == 0:
-                        print("the hardest AK5 is ", current_hardest_AK5)
+                        print("the hardest AK5 is ", ak5_hardest)
                         print("the current trigger is " + current_trigger_fired)
-                        print("trigger fired properly, loose JQC passed, jet quality set to 1, continue to process event")
+                        print("trigger fired properly, loose JQC passed, jet quality set to " + str(ak5_hardest.quality()) + " , continue to process event")
             
             #Begin reading the new section
             section_name = row[1]
@@ -111,7 +105,8 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             if lumi.search_lumi((row[1], row[3]), lumi_runs_and_blocks):
                 
                 #Initialise variables for new event
-                current_hardest_AK5, current_second_AK5, pseudojet_particles, current_jets, current_prescale, current_jec, current_jet_quality, current_trigger_fired = init_event_vars()
+                [ak5_hardest, ak5_second, pseudojet_particles, current_jets, current_prescale,
+                current_jec, current_jet_quality, current_trigger_fired] = init_event_vars()
                 if (count-1%k) == 0:
                     print("the event # " + str(count)+ " passed the check with lumi block (" + row[1] + ", " + row[3] + ")")
                 continue
@@ -133,14 +128,13 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
 
         #Update two hardest AK5s
         if row[0] == "AK5":
-            pT_squared_for_this_AK5 = (float(row[1])**2 + float(row[2])**2)*(float(row[5])**2)
-            if pT_squared_for_this_AK5 > current_hardest_AK5[-1]:
-                current_second_AK5 = copy.deepcopy(current_hardest_AK5)
-                current_hardest_AK5 = copy.deepcopy(row)
-                current_hardest_AK5.append(pT_squared_for_this_AK5)
-            elif pT_squared_for_this_AK5 > current_second_AK5[-1]:
-                current_second_AK5 = copy.deepcopy(row)
-                current_second_AK5.append(pT_squared_for_this_AK5)
+            ak5 = AK5(row)
+            
+            if ak5.pT2() > ak5_hardest.pT2():
+                ak5_second = copy.deepcopy(ak5_hardest)
+                ak5_hardest = copy.deepcopy(ak5)
+            elif ak5.pT2() > ak5_second.pT2():
+                ak5_second = copy.deepcopy(ak5)
             continue
 
         #Update list of PFC four-momenta
@@ -153,10 +147,14 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             if (count-1)%k == 0:
                 print("Reaching Endevent of # " + str(count))
 
+            if not ak5_hardest.valid() or not ak5_second.valid():
+                print("NOoooo")
+                continue
+
             #Run Fastjet checks: create pseudo jets from PFCs, match with hardest AK5s
             fastjets = jet_def(pseudojet_particles)
-            fastjets_observables = [[j.px(),j.py(),j.pz(),j.e(),j.rap(),j.phi(),len(j.constituents())] for j in fastjets]
-            matching_output = match_jets(current_hardest_AK5, current_second_AK5, fastjets_observables)
+            fastjets_observables = [[fj.px(),fj.py(),fj.pz(),fj.e(),fj.rap(),fj.phi(),len(fj.constituents())] for fj in fastjets]
+            matching_output = match_jets(ak5_hardest, ak5_second, fastjets_observables)
             
             #Check if jets have matched
             if matching_output[0] is False:
@@ -164,32 +162,32 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                 continue
             else:
                 #Save two hardest jets
-                FJ_hardest = fastjets[matching_output[1]]
-                FJ_second = fastjets[matching_output[2]]
+                fj_hardest = fastjets[matching_output[1]]
+                fj_second = fastjets[matching_output[2]]
+                
+                print("Fastjet matching passed, writing event to dat file.")
                 
                 #Write to the Event class and then to the .dat file
-                event = Event([FJ_hardest, FJ_second], current_prescale, current_jec, current_jet_quality, current_trigger_fired)
+                event = Event([fj_hardest, fj_second], current_prescale, ak5_hardest.jec(),
+                              ak5_hardest.quality(), current_trigger_fired)
                 write_dat.write_dat_event(dat_file, event)
             
             #Check to see if valid event count has reached its limit
             if valid_event_count == event_limit:
                 break
-            valid_event_count += 1
             continue
     
     return valid_event_count
 
 #Function to match hardest 2 jets with fastjet jets
-def match_jets(AK5_hardest,AK5_hardest2,pFJ):
+def match_jets(ak5_hardest, ak5_second, fastjets):
     """ Function to check fastjet generated 2 hardest jets, match the AK5 two hardest jets in (rap,phi) multiplicity and 4-vector to within 1MeV
     Input 2 hardest AK5s, and list of Pseudojet clusters from fastjet
     Output True or False if there is a match, and the indices of the hardest fj jets if True"""
             
     #Define these 2 hardest jet rapidity and phi
-    AK5_hardest_rap = np.arctanh(float(AK5_hardest[3])/float(AK5_hardest[4]))
-    AK5_hardest_phi = np.arctan2(float(AK5_hardest[2]),float(AK5_hardest[1]))
-    AK5_sechardest_rap = np.arctanh(float(AK5_hardest2[3])/float(AK5_hardest2[4]))
-    AK5_sechardest_phi = np.arctan2(float(AK5_hardest2[2]),float(AK5_hardest2[1]))
+    ak5_hardest.calc_eta_phi()
+    ak5_second.calc_eta_phi()
  
     #Initialise with arbitrary high values
     min_delta_R_sq1 = 1000000.
@@ -198,17 +196,17 @@ def match_jets(AK5_hardest,AK5_hardest2,pFJ):
     fj_hardest_index = 0
 
     #Loop through all fj jets
-    for fj_index in range(len(pFJ)):
+    for fj_index in range(len(fastjets)):
         
         #Calculate the minimum azimuth difference between the current fj jet and AK5 hardest 2 jets
-        phi1 = pFJ[fj_index][5]-AK5_hardest_phi
-        phi2 = pFJ[fj_index][5]-AK5_sechardest_phi
+        phi1 = fastjets[fj_index][5]-ak5_hardest.phi()
+        phi2 = fastjets[fj_index][5]-ak5_second.phi()
         delta_phi1 = min([phi1,phi1+2*np.pi,phi1-2*np.pi],key=abs)
         delta_phi2 = min([phi2,phi2+2*np.pi,phi2-2*np.pi],key=abs)
         
         #Calculate the delR squared values to the hardest 2 AK5 jets
-        current_delta_R_sq1 = (pFJ[fj_index][4]-AK5_hardest_rap)**2+delta_phi1**2
-        current_delta_R_sq2 = (pFJ[fj_index][4]-AK5_sechardest_rap)**2+delta_phi2**2
+        current_delta_R_sq1 = (fastjets[fj_index][4]-ak5_hardest.eta())**2+delta_phi1**2
+        current_delta_R_sq2 = (fastjets[fj_index][4]-ak5_second.eta())**2+delta_phi2**2
         
         #Check if new delR1 is less than minimum, if so save it
         if current_delta_R_sq1 < min_delta_R_sq1:
@@ -216,7 +214,7 @@ def match_jets(AK5_hardest,AK5_hardest2,pFJ):
             #If delR1 min is being updated, check to see if its old value could update the delR2 value, if so update it also with the old value
             if min_delta_R_sq1_save2 < min_delta_R_sq2:
                 min_delta_R_sq2 = min_delta_R_sq2
-                fj_sechardest_index = fj_hardest_index
+                fj_second_index = fj_hardest_index
             min_delta_R_sq1 = current_delta_R_sq1
             min_delta_R_sq1_save2 = current_delta_R_sq2
             fj_hardest_index = fj_index
@@ -224,10 +222,19 @@ def match_jets(AK5_hardest,AK5_hardest2,pFJ):
         #Otherwise directly compare to delR2 value and update
         elif current_delta_R_sq2 < min_delta_R_sq2:
             min_delta_R_sq2 = current_delta_R_sq2
-            fj_sechardest_index = fj_index
+            fj_second_index = fj_index
     
     #Check if good event: constituents, 4-momenta... if good return True and the indices of hardest 2 fastjet jets
-    if np.abs(pFJ[fj_hardest_index][6]-float(AK5_hardest[7])) > 0.001 or np.abs(pFJ[fj_hardest_index][0]-float(AK5_hardest[1])) > 0.001 or np.abs(pFJ[fj_hardest_index][1]-float(AK5_hardest[2])) > 0.001 or np.abs(pFJ[fj_hardest_index][2]-float(AK5_hardest[3])) > 0.001 or np.abs(pFJ[fj_hardest_index][3]-float(AK5_hardest[4])) > 0.001 or np.abs(pFJ[fj_sechardest_index][6]-float(AK5_hardest2[7])) > 0.1 or np.abs(pFJ[fj_sechardest_index][0]-float(AK5_hardest2[1])) > 0.001 or np.abs(pFJ[fj_sechardest_index][1]-float(AK5_hardest2[2])) > 0.001 or np.abs(pFJ[fj_sechardest_index][2]-float(AK5_hardest2[3])) > 0.001 or np.abs(pFJ[fj_sechardest_index][3]-float(AK5_hardest2[4])) > 0.001:
+    if (np.abs(fastjets[fj_hardest_index][6]) - ak5_hardest.mul() > 0.1   or
+        np.abs(fastjets[fj_hardest_index][0]) - ak5_hardest.px()  > 0.001 or
+        np.abs(fastjets[fj_hardest_index][1]) - ak5_hardest.py()  > 0.001 or
+        np.abs(fastjets[fj_hardest_index][2]) - ak5_hardest.pz()  > 0.001 or
+        np.abs(fastjets[fj_hardest_index][3]) - ak5_hardest.e()   > 0.001 or
+        np.abs(fastjets[fj_second_index][6])  - ak5_second.mul()  > 0.1   or
+        np.abs(fastjets[fj_second_index][0])  - ak5_second.px()   > 0.001 or
+        np.abs(fastjets[fj_second_index][1])  - ak5_second.py()   > 0.001 or
+        np.abs(fastjets[fj_second_index][2])  - ak5_second.pz()   > 0.001 or
+        np.abs(fastjets[fj_second_index][3])  - ak5_second.e()    > 0.001):
         return [False,0,0]
     else:
-        return [True,fj_hardest_index,fj_sechardest_index]
+        return [True,fj_hardest_index,fj_second_index]
