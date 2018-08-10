@@ -12,7 +12,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     valid_event_count = 0
     section_name = ''
     
-    k = 1000
+    k = 1
     
     #Dictionary of trigger ranges, s.t. key=trigger label, entry=true cut-off range squared
     squared_trigger_ranges = {"default":0., "HLT_Jet30":900., "HLT_Jet60":8100., "HLT_Jet80":12100., "HLT_Jet110":22500., "HLT_Jet150":44100., "HLT_Jet190":72900., "HLT_Jet240":96100., "HLT_Jet300":152100., "HLT_Jet370":230400.}
@@ -24,9 +24,9 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     #initialize the parameters for the current event
     #AK5 jets are stored as a list of strings, the same format read from the MOD file, appending its pT squared as the last entry, which is NOT a string (a float instead)
     def init_event_vars():
-        return (["default", 0.0], ["default", 0.0], [], [], 1.0, 1.0, -1, "default")
+        return (["default", 0.0], ["default", 0.0], [], [], [], 1.0, -1, [])
     #to use this function, copy the next line
-    current_hardest_AK5, current_second_AK5, Pseudojet_particles, current_jets, current_prescale, current_jec, current_jet_quality, current_trigger_fired = init_event_vars()
+    current_hardest_AK5, current_second_AK5, Pseudojet_particles, current_jets, current_prescales, current_jec, current_jet_quality, current_triggers_fired = init_event_vars()
 
     write_dat.write_dat_header(dat_file)
     
@@ -50,7 +50,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                 if row[1] != "AK5": #Note 34 events in the 2 mod files we tested on didnt have an AK5 section (so failed this check and were ignored)
                     good_event = False 
                     continue
-                if current_trigger_fired == "default":
+                if len(current_triggers_fired) == 0:
                     good_event = False
                     if count%k == 0 and count>0:
                         print("this event failed to fire any trigger, exiting event")
@@ -63,10 +63,18 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                     good_event = False 
                     continue
                 #If trigger condition is not satisfied, this event is bad
-                if squared_trigger_ranges[current_trigger_fired] > current_hardest_AK5[-1]:
+                highest_lower_trig_threshold = 0.
+                for i in squared_trigger_ranges:
+                    if squared_trigger_ranges[i] < current_hardest_AK5[-1]:
+                        highest_lower_trig_threshold = i
+                #Save the trigger equivalent to the current pT, and respective prescale
+                if highest_lower_trig_threshold in current_triggers_fired:
+                    Selected_trigger = highest_lower_trig_threshold                         
+                    Selected_trigger_prescale = current_prescales[current_triggers_fired.index(highest_lower_trig_threshold)]
+                if highest_lower_trig_threshold not in current_triggers_fired:
                     good_event = False
                     if count%k == 0 and count>0:
-                        print("the hardest AK5 pT squared is " + str(current_hardest_AK5[-1]) + " and the trigger is " + current_trigger_fired + " with threshold " + str(squared_trigger_ranges[current_trigger_fired]))
+                        print("the hardest AK5 pT squared is " + str(current_hardest_AK5[-1]) + " and the trigger is " + highest_lower_trig_threshold + " with threshold " + str(squared_trigger_ranges[highest_lower_trig_threshold]))
                         print("the hardest AK5 (with JEC) is smaller than the trigger fired, hence this event is rejected, exiting event")
                     continue
                 #apply 'loose' JQC to the hardest Jet, and reject the event if any of the followings are the case
@@ -88,7 +96,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                         current_jet_quality = 1
                     if count%k == 0 and count>0:
                         print("the hardest AK5 is ", current_hardest_AK5)
-                        print("the current trigger is " + current_trigger_fired)
+                        print("the current triggers are ",Selected_trigger)
                         print("trigger fired properly, loose JQC passed, jet quality set to 1, continue to process event")
                         
             section_name = row[1]
@@ -98,7 +106,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
         
         elif section_name == "Cond":
             if lumi.search_lumi((row[1], row[3]), lumi_runs_and_blocks):
-                current_hardest_AK5, current_second_AK5, Pseudojet_particles, current_jets, current_prescale, current_jec, current_jet_quality, current_trigger_fired = init_event_vars()
+                current_hardest_AK5, current_second_AK5, Pseudojet_particles, current_jets, current_prescales, current_jec, current_jet_quality, current_triggers_fired = init_event_vars()
                 if count%k == 0 and count>0:
                     print("the event # " + str(count)+ " passed the check with lumi block (" + row[1] + ", " + row[3] + ")")
                 continue
@@ -110,9 +118,9 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
         
         elif section_name == "Trig":
             trigger_title = row[1].rpartition('_')[0]
-            if trigger_title in squared_trigger_ranges and row[4] == "1": #Only consider HLT_Jet trigger types that have fired
-                if squared_trigger_ranges[trigger_title] > squared_trigger_ranges[current_trigger_fired]: #Only update if trigger cut-off is larger than current cut-off in consideration
-                    current_trigger_fired, current_prescale = (trigger_title, float(row[2])*float(row[3]))
+            if trigger_title in squared_trigger_ranges and row[4] == "1": #Save all HLT_Jet trigger types that have fired (and equivalent prescales)
+                current_triggers_fired.append(trigger_title)
+                current_prescales.append(float(row[2])*float(row[3]))
             continue
 
         elif row[0] == "AK5":
@@ -132,9 +140,6 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             pass
 
         elif row[0] == "EndEvent":
-            if count%k == 0 and count>0:
-                print("Reaching Endevent of # " + str(count))
-
             #Run Fastjet checks: create pseudo jets from PFCs, match with hardest AK5s
             fastjets = jet_def(Pseudojet_particles)
             fastjets_observables = [[x.px(),x.py(),x.pz(),x.e(),x.rap(),x.phi(),len(x.constituents())] for x in fastjets]
@@ -143,14 +148,18 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             #If did not match event is bad, if matched, save the 2 hardest pseudojet objects
             if matching_output[0] is False:
                 good_event = False
+                print('event rejected based on fastjet comparison')
                 continue
             else:
                 FJ_hardest = fastjets[matching_output[1]]
                 FJ_second_hardest = fastjets[matching_output[2]]
                 
-                event = Event([FJ_hardest, FJ_second_hardest], current_prescale, current_jec, current_jet_quality, current_trigger_fired)
+                event = Event([FJ_hardest, FJ_second_hardest], Selected_trigger_prescale, current_jec, current_jet_quality, Selected_trigger)
                 write_dat.write_dat_event(dat_file, event)
-              
+                if count%k == 0 and count>0:
+                    print("Event validated with fastjet, and written to .dat, event #: ",str(count),'trigger: ',Selected_trigger)
+                    print('##############################################################')
+                
             if valid_event_count == event_limit:
                 break
             valid_event_count += 1
@@ -201,7 +210,7 @@ def match_jets(AK5_hardest,AK5_hardest2,pFJ):
             fj_sechardest_index = fj_index
     
     #Check if good event: constituents, 4-momenta... if good return True and the indices of hardest 2 fastjet jets
-    if np.abs(pFJ[fj_hardest_index][6]-float(AK5_hardest[7])) > 0.001 or np.abs(pFJ[fj_hardest_index][0]-float(AK5_hardest[1])) > 0.001 or np.abs(pFJ[fj_hardest_index][1]-float(AK5_hardest[2])) > 0.001 or np.abs(pFJ[fj_hardest_index][2]-float(AK5_hardest[3])) > 0.001 or np.abs(pFJ[fj_hardest_index][3]-float(AK5_hardest[4])) > 0.001 or np.abs(pFJ[fj_sechardest_index][6]-float(AK5_hardest2[7])) > 0.1 or np.abs(pFJ[fj_sechardest_index][0]-float(AK5_hardest2[1])) > 0.001 or np.abs(pFJ[fj_sechardest_index][1]-float(AK5_hardest2[2])) > 0.001 or np.abs(pFJ[fj_sechardest_index][2]-float(AK5_hardest2[3])) > 0.001 or np.abs(pFJ[fj_sechardest_index][3]-float(AK5_hardest2[4])) > 0.001:
+    if np.abs(pFJ[fj_hardest_index][6]-float(AK5_hardest[7])) >= 1. or np.abs(pFJ[fj_hardest_index][0]-float(AK5_hardest[1])) > 0.001 or np.abs(pFJ[fj_hardest_index][1]-float(AK5_hardest[2])) > 0.001 or np.abs(pFJ[fj_hardest_index][2]-float(AK5_hardest[3])) > 0.001 or np.abs(pFJ[fj_hardest_index][3]-float(AK5_hardest[4])) > 0.001 or np.abs(pFJ[fj_sechardest_index][6]-float(AK5_hardest2[7])) >= 1. or np.abs(pFJ[fj_sechardest_index][0]-float(AK5_hardest2[1])) > 0.001 or np.abs(pFJ[fj_sechardest_index][1]-float(AK5_hardest2[2])) > 0.001 or np.abs(pFJ[fj_sechardest_index][2]-float(AK5_hardest2[3])) > 0.001 or np.abs(pFJ[fj_sechardest_index][3]-float(AK5_hardest2[4])) > 0.001:
         return [False,0,0]
     else:
         return [True,fj_hardest_index,fj_sechardest_index]
