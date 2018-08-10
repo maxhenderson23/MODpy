@@ -10,9 +10,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     count = 0
     valid_event_count = 0
     section_name = ''
-
     k = 1
-
     
     #Dictionary of trigger ranges, s.t. key=trigger label, entry=true cut-off range squared
     squared_trigger_ranges = {"default":0., "HLT_Jet30":900., "HLT_Jet60":8100., "HLT_Jet80":12100., "HLT_Jet110":22500., "HLT_Jet150":44100., "HLT_Jet190":72900., "HLT_Jet240":96100., "HLT_Jet300":152100., "HLT_Jet370":230400.}
@@ -54,6 +52,8 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                 #Check that the AK5 section follows the Trig section
                 if row[1] != "AK5":
                     good_event = False 
+                    if (count-1)%k == 0:
+                        print("no AK5s in mod file for this event, hence ignore event")
                     continue
                 if len(current_triggers_fired) == 0:
                     good_event = False
@@ -68,6 +68,8 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                 #Check that the PFC section follows the AK5 section
                 if row[1] != "PFC": 
                     good_event = False 
+                    if (count-1)%k == 0:
+                        print("no PFCs in mod file for this event, hence ignore event")
                     continue
                 #If trigger condition is not satisfied, this event is bad
                 highest_lower_trig_threshold = 0.
@@ -122,7 +124,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                 continue
             else:
                 good_event = False
-                if (count-1%k) == 0:
+                if (count%k-1) == 0:
                     print("this event does not exist in the good lumi block file, exiting event")
             continue
         
@@ -170,7 +172,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                 event = Event([FJ_hardest, FJ_second_hardest], Selected_trigger_prescale, current_jec, current_jet_quality, Selected_trigger)
                 write_dat.write_dat_event(dat_file, event)
                 if count%k == 0 and count>0:
-                    print("Event validated with fastjet, and written to .dat, event #: ",str(count),'trigger: ',Selected_trigger) #######Remove trigger part of print
+                    print("Event validated with fastjet, and written to .dat, event #: ",str(count),'trigger: ',Selected_trigger) #######Remove trigger part of print after testing
                     print('##############################################################')
             if valid_event_count == event_limit:
                 break
@@ -227,7 +229,8 @@ def match_jets(AK5_hardest,AK5_hardest2,pFJ):
             fj_sechardest_index = fj_index
     
     #Check if good event: constituents, 4-momenta... if good return True and the indices of hardest 2 fastjet jets
-    if np.abs(pFJ[fj_hardest_index][6]-float(AK5_hardest[7])) >= 1. or np.abs(pFJ[fj_hardest_index][0]-float(AK5_hardest[1])) > 0.001 or np.abs(pFJ[fj_hardest_index][1]-float(AK5_hardest[2])) > 0.001 or np.abs(pFJ[fj_hardest_index][2]-float(AK5_hardest[3])) > 0.001 or np.abs(pFJ[fj_hardest_index][3]-float(AK5_hardest[4])) > 0.001 or np.abs(pFJ[fj_sechardest_index][6]-float(AK5_hardest2[7])) >= 1. or np.abs(pFJ[fj_sechardest_index][0]-float(AK5_hardest2[1])) > 0.001 or np.abs(pFJ[fj_sechardest_index][1]-float(AK5_hardest2[2])) > 0.001 or np.abs(pFJ[fj_sechardest_index][2]-float(AK5_hardest2[3])) > 0.001 or np.abs(pFJ[fj_sechardest_index][3]-float(AK5_hardest2[4])) > 0.001:
+    if np.abs(pFJ[fj_hardest_index][6]-float(AK5_hardest[7])) > 0. or np.abs(pFJ[fj_hardest_index][0]-float(AK5_hardest[1])) > 0.001 or np.abs(pFJ[fj_hardest_index][1]-float(AK5_hardest[2])) > 0.001 or np.abs(pFJ[fj_hardest_index][2]-float(AK5_hardest[3])) > 0.001 or np.abs(pFJ[fj_hardest_index][3]-float(AK5_hardest[4])) > 0.001: # or np.abs(pFJ[fj_sechardest_index][6]-float(AK5_hardest2[7])) > 0. or np.abs(pFJ[fj_sechardest_index][0]-float(AK5_hardest2[1])) > 0.001 or np.abs(pFJ[fj_sechardest_index][1]-float(AK5_hardest2[2])) > 0.001 or np.abs(pFJ[fj_sechardest_index][2]-float(AK5_hardest2[3])) > 0.001 or np.abs(pFJ[fj_sechardest_index][3]-float(AK5_hardest2[4])) > 0.001:
+        ####################remive hash in above line after testing
         return [False,0,0]
     else:
         return [True,fj_hardest_index,fj_sechardest_index]
