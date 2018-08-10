@@ -55,5 +55,10 @@ for i in range(len(MOD_files_2011)):
     writer = csv.writer(open(dat_files_2011[i], 'w+'), delimiter=' ')
     event_limit -= analyze_MOD(reader, writer, lumi_runs_and_blocks, event_limit)
 
-#Print final script run time
+#Print files written and final script run time
+for i in range(len(MOD_files_2011)):
+    if i == 0:
+        print('Wrote the files ' + dat_files_2011[i])
+    else:
+        print('                ' + dat_files_2011[i])
 print('Script runtime:',time.clock() - start_time)

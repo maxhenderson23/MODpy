@@ -11,9 +11,11 @@ from operator import add
 import csv
 import math 
 
-default_range = {"hardest_pT": (0, 2000), "mul_pre_SD": (0, 100), "hardest_eta": (-5, 5), "hardest_phi": (0, 2*math.pi), "hardest_area": (0.68, 1.1)}
-default_title = {"hardest_pT": "hardest jet $p_T$", "mul_pre_SD": "mul. of the hardest jet", "hardest_eta": "hardest jet $\eta$", "hardest_phi": "hardest jet $\phi$", "hardest_area": "hardest jet area"}
-default_axis_labels = {"hardest_pT": ("hardest jet $p_T$ $[GeV]$", "diff. cross-section $[\mu b/GeV]$"), "mul_pre_SD": ("multiplicity", "diff. cross-section $[\mu b]$"), "hardest_eta": ("hardest jet $\eta$", "diff. cross-section $[\mu b]$"), "hardest_phi": ("hardest jet $\phi$", "diff. cross-section $[\mu b]$"), "hardest_area": ("hardest jet area", "diff. cross-section $[\mu b]$")}
+# default_range = {"hardest_pT": (0, 2000), "mul_pre_SD": (0, 100), "hardest_eta": (-5, 5), "hardest_phi": (0, 2*math.pi), "hardest_area": (0.68, 1.1)}
+# default_title = {"hardest_pT": "hardest jet $p_T$", "mul_pre_SD": "mul. of the hardest jet", "hardest_eta": "hardest jet $\eta$", "hardest_phi": "hardest jet $\phi$", "hardest_area": "hardest jet area"}
+# default_axis_labels = {"hardest_pT": ("hardest jet $p_T$ $[GeV]$", "diff. cross-section $[\mu b/GeV]$"), "mul_pre_SD": ("multiplicity", "diff. cross-section $[\mu b]$"), "hardest_eta": ("hardest jet $\eta$", "diff. cross-section $[\mu b]$"), "hardest_phi": ("hardest jet $\phi$", "diff. cross-section $[\mu b]$"), "hardest_area": ("hardest jet area", "diff. cross-section $[\mu b]$")}
+get_symbol = {"hardest_pT": "$\max(p_T^{jet}$)", "jet_quality": "JQ"}
+get_unit = {"hardest_pT": " GeV", "jet_quality": ""}
 
 def load_effective_lumi(effective_lumi_file_dir, data_files):
     data_file_list = [data_file.replace(".dat", ".mod") for data_file in data_files]
@@ -30,127 +32,114 @@ def load_effective_lumi(effective_lumi_file_dir, data_files):
         scaling_factors[x] = 1.0/total_effective_lumi[x]
     return scaling_factors
 
-def read_dat_to_list(effective_lumi_dic_for_DAT_file, DAT_file, eta_range_check_2point4, hardest_pT_lower_bound):
+def read_dat_to_list(var_name, effective_lumi_dic_for_DAT_file, DAT_file, constraints):
     var_list = []
     scale_list = []
-    
-    var_index = None
-    trigger_fired_index = None
+    column_keys = {}
     
     reading_zeroth_line = True
     for row in DAT_file:
         if reading_zeroth_line:
-            column_keys = row[1:]
-            try:
-                var_index = column_keys.index(var_name)
-            except:
-                print("invalid variable name, check if exit in every .dat file ")
-                sys.exit()
-            try:
-                trigger_fired_index = column_keys.index("trigger_fired")
-            except:
-                print("cannot find 'trigger_fired' variable, check if exit in every .dat file ")
-                sys.exit()
-            try:
-                hardest_eta_index = column_keys.index("hardest_eta")
-            except:
-                print("cannot find 'hardest_eta' variable, check if exit in every .dat file ")
-                sys.exit()
-            try:
-                hardest_pT_index = column_keys.index("hardest_pT")
-            except:
-                print("cannot find 'hardest_pT' variable, check if exit in every .dat file ")
-                sys.exit()
-            
+            for i, key in enumerate(row[1:]):
+                column_keys[key] = i
             reading_zeroth_line = False
-        elif ((not eta_range_check_2point4) or -2.4<=float(row[hardest_eta_index])<=2.4) and hardest_pT_lower_bound <= float(row[hardest_pT_index]):
-            var_list.append(float(row[var_index]))
-            scale_list.append(scaling_factors[row[trigger_fired_index]])
+        
+        else:
+            constraints_satisfied = True
+            for key in constraints:
+                if not constraints[key][0] <= float(row[column_keys[key]]) <= constraints[key][1]:
+                    constraints_satisfied = False
+                    break
+            if constraints_satisfied:
+                var_list.append(float(row[column_keys[var_name]]))
+                scale_list.append(scaling_factors[row[column_keys["trigger_fired"]]])
     
     return (var_list, scale_list)
 
 ##################################################################################################################################################################################
 
-input_directory = sys.argv[1]
-data_files = os.listdir(input_directory)
-data_files = [os.path.split(data_file)[1] for data_file in data_files if ".dat" in os.path.split(data_file)[1]]
-
-var_name = sys.argv[2]
-
-#Set up default values
-var_range = default_range[var_name]
-var_title = default_title[var_name]
-var_x_label, var_y_label = default_axis_labels[var_name]
-y_scale_log = True
-with_error_bar = True
-no_of_bins = 100
 eta_range_check_2point4 = False
-var_label = "CMS 2011 Open Data"
 hardest_pT_lower_bound = 0.0
 
-######################
+#plot_data is a list of data to be plotted, which is a dic {<data directory>, <label>, <format>}
+plot_data = []
+# constraints is a dictionary of contraints, with ranges as entries
+constraints ={}
+plot_input = csv.reader(open("./plot_input.csv"), delimiter=',')
+for row in plot_input:
+    try:
+        if row[0] == "Settings":
+            var_name = row[1]
+            plot_name = row[2]
+            plot_title = row[3]
+            x_axis = row[4]
+            y_axis = row[5]
+            x_range = (float(row[6].split(":")[0][1:]), float(row[6].split(":")[1][:-1]))
+            no_of_bins = int(row[7])
+            if row[8] == "True":
+                y_scale_log = True
+            else:
+                y_scale_log = False
+            for constraint in row[9:]:
+                constraints[constraint.split(":")[0]] = (float(constraint.split(":")[1]), float(constraint.split(":")[2]))
 
-#Read in input flag arguments 
-for (i, arg) in enumerate(sys.argv):
-    if arg == "--range":
-        try:
-            var_range = make_tuple(sys.argv[i+1])
-        except:
-            print("please enter valid range, 'default_range', or a tuple with two entries, do not put empty space in the tuple ")
-            sys.exit()
-    elif arg == "--y_linear":
-        y_scale_log = False
-    elif arg == "--no_error_bar":
-        with_error_bar = False
-    elif arg == "--bins":
-        try:
-            no_of_bins = int(sys.argv[i+1])
-        except:
-            print("please enter valid number of bins")
-            sys.exit()
-    elif arg == "--eta_range_2.4":
-        eta_range_check_2point4 = True
-    elif arg == "--hardest_pT_lower_bound":
-        try:
-            hardest_pT_lower_bound = float(sys.argv[i+1])
-        except:
-            print("please enter valid hardest pT lower bound, it should be a number ")
+        elif row[0] == "Data":
+            plot_data.append({"dir":row[1], "label":row[2], "fmt":row[3]})
+    except:
+        pass
 
-#####################################################################################################################################################
+#######################################################################################################################################################
 
-scaling_factors = load_effective_lumi("./effective_luminosity_by_trigger.csv", data_files)
+pl.figure(plot_name)
+pl.title(plot_title)
 
-hist_data = []
-bin_edges = []
-sum_squared_weights = []
+###################################################################################################################
 
-for i in range(no_of_bins):
-    hist_data.append(0.0)
-    sum_squared_weights.append(0.0)
+for data in plot_data:
+    data_files = os.listdir(data["dir"])
+    data_files = [os.path.split(data_file)[1] for data_file in data_files if ".dat" in os.path.split(data_file)[1]]
+    
+    scaling_factors = load_effective_lumi("./effective_luminosity_by_trigger.csv", data_files)
+    
+    hist_data = []
+    bin_edges = []
+    sum_squared_weights = []
 
-for data_file in data_files:
-    DAT_file = csv.reader(open(input_directory + data_file), delimiter=' ', skipinitialspace = 1)
+    for i in range(no_of_bins):
+        hist_data.append(0.0)
+        sum_squared_weights.append(0.0)
+    
+    for data_file in data_files:
+        DAT_file = csv.reader(open(data["dir"] + data_file), delimiter=' ', skipinitialspace = 1)
+    
+        (var_list, scale_list) = read_dat_to_list(var_name, scaling_factors, DAT_file, constraints)
+        (current_hist_data, bin_edges) = np.histogram(var_list, bins=no_of_bins, range = x_range, weights = [x*no_of_bins/(x_range[1]-x_range[0]) for x in scale_list])
+        hist_data = list(map(add, current_hist_data, hist_data))
+        (current_sum_squared_weights, whatever) = np.histogram(var_list, bins=no_of_bins, range = x_range, weights = [(x*no_of_bins/(x_range[1]-x_range[0])) * (x*no_of_bins/(x_range[1]-x_range[0])) for x in scale_list])
+        sum_squared_weights = list(map(add, sum_squared_weights, current_sum_squared_weights))
 
-    (var_list, scale_list) = read_dat_to_list(scaling_factors, DAT_file, eta_range_check_2point4, hardest_pT_lower_bound)
-    (current_hist_data, bin_edges) = np.histogram(var_list, bins=no_of_bins, range = var_range, weights = [x*no_of_bins/(var_range[1]-var_range[0]) for x in scale_list])
-    hist_data = list(map(add, current_hist_data, hist_data))
-    (current_sum_squared_weights, whatever) = np.histogram(var_list, bins=no_of_bins, range = var_range, weights = [(x*no_of_bins/(var_range[1]-var_range[0])) * (x*no_of_bins/(var_range[1]-var_range[0])) for x in scale_list])
-    sum_squared_weights = list(map(add, sum_squared_weights, current_sum_squared_weights))
+    pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=np.sqrt(sum_squared_weights), label=data["label"], fmt = data["fmt"])
 
-if eta_range_check_2point4:
-    var_title += " with $|\eta|\leq2.4$"
-if (hardest_pT_lower_bound):
-    var_title += " with hardest jet $p_T\geq" + str(int(hardest_pT_lower_bound)) + "$ GeV"
-pl.figure(var_title)
-pl.title(var_title)
-if with_error_bar:
-    pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=np.sqrt(sum_squared_weights), label=var_label,fmt = 'r.')
-else:
-    pl.plot((bin_edges[:-1] + bin_edges[1:])/2, hist_data, label=var_label, color='r')
-pl.xlabel(var_x_label)
-pl.ylabel(var_y_label)
+######################################################################################################################################################
+
+pl.xlabel(x_axis)
+pl.ylabel(y_axis)
 if y_scale_log:
     pl.yscale('log')
 pl.legend(loc='best')
+constraint_text_horizontal_position = 0.95 - len(plot_data)*0.07
+for key in constraints:
+    constraint_text = get_symbol[key]
+    if math.isinf(constraints[key][1]):
+        if math.isinf(constraints[key][0]):
+            continue
+        else:
+            constraint_text += "$\geq$" + str(int(constraints[key][0])) + get_unit[key]
+    else:
+        if not math.isinf(constraints[key][0]):
+            constraint_text = str(int(constraints[key][0])) + get_unit[key] + "$\leq$" + constraint_text
+        constraint_text += "$\leq$" + str(int(constraints[key][1])) + get_unit[key]
+    pl.text(0.97, constraint_text_horizontal_position, constraint_text, horizontalalignment='right', transform=pl.gca().transAxes)
+    constraint_text_horizontal_position -= 0.07
 pl.grid()
 pl.show()
