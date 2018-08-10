@@ -56,29 +56,9 @@ def Jet_generator(MOD_file,line_no_list):
         #pFJ = [[jet.px(), jet.py(), jet.pz(), jet.e()] for jet in jets]
         
         #Check to see if FJ jets correspond to AK5 jets, if they don't ignore/remove event, if they do save the event and FJ jet 4-vectors
-<<<<<<< HEAD
-        if 1:#match_jets(pFJ,AK5s):
-            Jet_corrected_line_no_list.append([event[0],event[1],event[2]])
-            for jet in jets:
-                all_jets.append(jet)
-=======
         if True: #match_jets(AK5s,jets_list) == True:
             Jet_corrected_line_no_list.append([event[0],event[1],event[2]]) #,jets_list])  READD IN TO PLOT WITH FJ JETS!! ##############
     
-        '''        
-        if list_counter < 5: #################
-            print(list_counter)
-            #print(Particles)
-            print()
-            print('AK5s: ',AK5s)
-            print()
-            print('fj jets:' ,jets_list)
-            print()
-            print('corrected jet list: ',Jet_corrected_line_no_list)
-            print('end of print')
-            print()
-    '''
->>>>>>> f77114df7bdc8d984a0d8f760483945f32078cce
     
     return [Jet_corrected_line_no_list, all_jets]
 

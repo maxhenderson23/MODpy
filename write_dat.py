@@ -1,6 +1,6 @@
-import csv
+spacing = 30
 
-dat_header = ['# Entry', 'prescale', 'multiplicity', 'mul_pre_SD', 
+dat_header = ['# MODpy_entry', 'prescale', 'multiplicity', 'mul_pre_SD', 
               'events_being_read', 'hardest_pT', 'jec', 'jet_quality', 
               'hardest_eta', 'crosssection', 'trigger_fired', 
               'hardest_phi', 'hardest_area', 'zg_05', 'mu_05', 'rg_05', 
@@ -23,18 +23,32 @@ dat_header = ['# Entry', 'prescale', 'multiplicity', 'mul_pre_SD',
               'track_width_post_SD', 'track_thrust_pre_SD',
               'track_thrust_post_SD']
 
-def write_dat_header(file_path):
-    with open(file_path, 'w') as dat:
-        datwriter = csv.writer(dat, delimiter='\t')
-        datwriter.writerow(dat_header)
-
-def write_dat_event(file_path, event):
-    dat_row = ['Entry']
+def write_dat_header(writer):
+    
+    dat_row = []
+    
     for col in dat_header:
-        if col == 'prescale':
+        dat_row.append(col)
+        
+        #add extra spaces up to a multiple of 2     
+        extraspace = spacing - len(dat_row[-1])
+        dat_row.append(' '*(int(extraspace/2) - 1))
+    
+    writer.writerow(dat_row)
+
+def write_dat_event(writer, event):
+    
+    dat_row = []
+    
+    for col in dat_header:
+        if col == '# MODpy_entry':
+            dat_row.append(' MODpy_entry')
+        elif col == 'prescale':
             dat_row.append(str(event.prescale()))
         elif col == 'mul_pre_SD':
             dat_row.append(str(event.mul_pre_SD()))
+        elif col == 'mass_pre_SD':
+            dat_row.append(str(event.mass_pre_SD()))
         elif col == 'hardest_pT':
             dat_row.append(str(event.hardest_pT()))
         elif col == 'hardest_eta':
@@ -52,6 +66,8 @@ def write_dat_event(file_path, event):
         else:
             dat_row.append('nan')
 
-    with open(file_path, 'w') as dat:
-        datwriter = csv.writer(dat, delimiter='\t')
-        datwriter.writerow(dat_row)
+        #add extra spaces up to a multiple of 2     
+        extraspace = spacing - len(dat_row[-1])
+        dat_row.append(' '*(int(extraspace/2) - 1))
+    
+    writer.writerow(dat_row)
