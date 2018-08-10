@@ -16,9 +16,6 @@ class Event:
         return self.__jets[0].m()
     
     def hardest_pT(self):
-        print(self.__jets[0].pt())
-        print(self.__jets[0].pt()*self.__jec)
-        
         return self.__jets[0].pt()*self.__jec
     
     def hardest_eta(self):
