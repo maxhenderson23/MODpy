@@ -11,9 +11,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     valid_event_count = 0
     section_name = ''
     k = 1
-    
-    #Dictionary of trigger ranges, s.t. key=trigger label, entry=true cut-off range squared
-    squared_trigger_ranges = {"default":0., "HLT_Jet30":900., "HLT_Jet60":8100., "HLT_Jet80":12100., "HLT_Jet110":22500., "HLT_Jet150":44100., "HLT_Jet190":72900., "HLT_Jet240":96100., "HLT_Jet300":152100., "HLT_Jet370":230400.}
+    accepted_events_counter = 0
     
     #Define FastJet parameters, and the algorithm
     R = 0.5
@@ -37,6 +35,9 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             good_event = True
             section_name = "BeginEvent"
             count += 1
+            #Initialise dictionary of trigger ranges, s.t. key=trigger label, entry=true cut-off range squared ...no 300 trigger in initialisation
+            squared_trigger_ranges = {"default":0., "HLT_Jet30":900., "HLT_Jet60":8100., "HLT_Jet80":12100., "HLT_Jet110":22500., "HLT_Jet150":44100., "HLT_Jet190":72900., "HLT_Jet240":96100., "HLT_Jet370":230400.} 
+
             #Provide commentary on every kth event
             if (count-1)%k == 0:
                 print("starting to process event # " + str(count))
@@ -131,6 +132,8 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
         #Update hardest trigger
         if section_name == "Trig":
             trigger_title = row[1].rpartition('_')[0]
+            if trigger_title == 'HLT_Jet300': #If event has a 300 trigger, add it to the list of triggers to check
+                squared_trigger_ranges["HLT_Jet300"] = 152100.
             if trigger_title in squared_trigger_ranges and row[4] == "1": #Save all HLT_Jet trigger types that have fired (and equivalent prescales)
                 current_triggers_fired.append(trigger_title)
                 current_prescales.append(float(row[2])*float(row[3]))
@@ -172,7 +175,8 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                 event = Event([FJ_hardest, FJ_second_hardest], Selected_trigger_prescale, current_jec, current_jet_quality, Selected_trigger)
                 write_dat.write_dat_event(dat_file, event)
                 if count%k == 0 and count>0:
-                    print("Event validated with fastjet, and written to .dat, event #: ",str(count),'trigger: ',Selected_trigger) #######Remove trigger part of print after testing
+                    accepted_events_counter += 1
+                    print("Event validated with fastjet, and written to .dat, event #: ",str(count),'accepted event #:',accepted_events_counter)
                     print('##############################################################')
             if valid_event_count == event_limit:
                 break
