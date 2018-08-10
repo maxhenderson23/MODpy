@@ -1,5 +1,5 @@
 class Event:
-    def __init__(self, jets, prescale, jec, jet_quality = -1, trigger_fired = 'nan'):
+    def __init__(self, jets, prescale, jec, jet_quality, trigger_fired):
         self.__jets          = jets
         self.__prescale      = prescale
         self.__jec           = jec
@@ -16,7 +16,10 @@ class Event:
         return self.__jets[0].m()
     
     def hardest_pT(self):
-        return self.__jets[0].pt()
+        print(self.__jets[0].pt())
+        print(self.__jets[0].pt()*self.__jec)
+        
+        return self.__jets[0].pt()*self.__jec
     
     def hardest_eta(self):
         return self.__jets[0].eta()

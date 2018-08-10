@@ -52,7 +52,7 @@ for i in range(len(MOD_files_2011)):
     reader = csv.reader(open(MOD_files_2011[i]), delimiter=' ', skipinitialspace = 1)
     if os.path.exists(dat_files_2011[i]):
         os.remove(dat_files_2011[i])
-    writer = csv.writer(open(dat_files_2011[i], 'w+'), delimiter=' ')
+    writer = csv.writer(open(dat_files_2011[i], 'w+'), delimiter=' ', quoting = csv.QUOTE_NONE, escapechar = ' ')
     event_limit -= analyze_MOD(reader, writer, lumi_runs_and_blocks, event_limit)
 
 #Print files written and final script run time

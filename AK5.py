@@ -28,7 +28,7 @@ class AK5:
     def calc_eta_phi(self):
         pmag = (self.__px**2+self.__py**2+self.__pz**2)**.5
         self.__eta  = np.arctanh(self.__pz/pmag)
-        self.__phi  = np.arccos(self.__px/pmag)
+        self.__phi  = np.arctan2(self.__py, self.__px)
             
     def calc_quality(self):
         #Loose quality check
