@@ -233,8 +233,7 @@ def match_jets(AK5_hardest,AK5_hardest2,pFJ):
             fj_sechardest_index = fj_index
     
     #Check if good event: constituents, 4-momenta... if good return True and the indices of hardest 2 fastjet jets
-    if np.abs(pFJ[fj_hardest_index][6]-float(AK5_hardest[7])) > 0. or np.abs(pFJ[fj_hardest_index][0]-float(AK5_hardest[1])) > 0.001 or np.abs(pFJ[fj_hardest_index][1]-float(AK5_hardest[2])) > 0.001 or np.abs(pFJ[fj_hardest_index][2]-float(AK5_hardest[3])) > 0.001 or np.abs(pFJ[fj_hardest_index][3]-float(AK5_hardest[4])) > 0.001: # or np.abs(pFJ[fj_sechardest_index][6]-float(AK5_hardest2[7])) > 0. or np.abs(pFJ[fj_sechardest_index][0]-float(AK5_hardest2[1])) > 0.001 or np.abs(pFJ[fj_sechardest_index][1]-float(AK5_hardest2[2])) > 0.001 or np.abs(pFJ[fj_sechardest_index][2]-float(AK5_hardest2[3])) > 0.001 or np.abs(pFJ[fj_sechardest_index][3]-float(AK5_hardest2[4])) > 0.001:
-        ####################remive hash in above line after testing
+    if np.abs(pFJ[fj_hardest_index][6]-float(AK5_hardest[7])) > 0. or np.abs(pFJ[fj_hardest_index][0]-float(AK5_hardest[1])) > 0.001 or np.abs(pFJ[fj_hardest_index][1]-float(AK5_hardest[2])) > 0.001 or np.abs(pFJ[fj_hardest_index][2]-float(AK5_hardest[3])) > 0.001 or np.abs(pFJ[fj_hardest_index][3]-float(AK5_hardest[4])) > 0.001 or np.abs(pFJ[fj_sechardest_index][6]-float(AK5_hardest2[7])) > 0. or np.abs(pFJ[fj_sechardest_index][0]-float(AK5_hardest2[1])) > 0.001 or np.abs(pFJ[fj_sechardest_index][1]-float(AK5_hardest2[2])) > 0.001 or np.abs(pFJ[fj_sechardest_index][2]-float(AK5_hardest2[3])) > 0.001 or np.abs(pFJ[fj_sechardest_index][3]-float(AK5_hardest2[4])) > 0.001:
         return [False,0,0]
     else:
         return [True,fj_hardest_index,fj_sechardest_index]

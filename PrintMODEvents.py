@@ -1,4 +1,4 @@
-#Print MOD file lines
+#Print MOD file events
 import csv
 import sys
 
