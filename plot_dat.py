@@ -4,10 +4,7 @@
 
 import numpy as np
 import matplotlib.pyplot as pl
-import sys
 import os
-import lumi
-from ast import literal_eval as make_tuple
 from operator import add
 import csv
 import math 

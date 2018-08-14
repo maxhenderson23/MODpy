@@ -25,7 +25,6 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     #initialize the parameters for the current event
     '''AK5 jets stored as a list of strings corresponding to each entry of the row in the MOD file.
     The last entry is pT**2, saved as a floating point variable.'''
-    
     def init_event_vars():
         return (AK5([]), AK5([]), [], [], 1.0, 1.0, -1, "default")
     #to use this function, copy the next line
@@ -109,7 +108,6 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                     continue
                 else:
                     if (count-1)%k == 0:
-
                         print("the hardest AK5 is ", current_hardest_AK5)
                         print("the current triggers are ",Selected_trigger)
                         print("trigger fired properly, loose JQC passed, jet quality set to 1, continue to process event")
@@ -131,7 +129,8 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                 #Initialise variables for new event
                 [ak5_hardest, ak5_second, pseudojet_particles, current_jets, current_prescale,
                 current_jec, current_jet_quality, current_trigger_fired] = init_event_vars()
-                if (count-1)%k == 0:
+                
+                if (count-1)%k == 0 and count>0:
                     print("the event # " + str(count)+ " passed the check with lumi block (" + row[1] + ", " + row[3] + ")")
                 continue
             else:
@@ -199,6 +198,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                               ak5_hardest.quality(), current_trigger_fired)
 
                 write_dat.write_dat_event(dat_file, event)
+
                 if (count-1)%k == 0:
                     valid_event_count += 1
                     print("Event validated with fastjet, and written to .dat, event #: ",str(count),'accepted event #:',valid_event_count)

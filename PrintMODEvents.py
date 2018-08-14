@@ -2,17 +2,19 @@
 import csv
 import sys
 
+#Input MOD file
 MOD = sys.argv[1]
 
 reader_mod = csv.reader(open(MOD), delimiter=' ', skipinitialspace = 1)
 
+#Range of events in input MOD file to print
 events_to_print = range(4972,4978)
 
 event_counter = 0
 row = next(reader_mod) 
 row_counter = 1
 
-#for row in reader_mod:
+#Loop through MOD file rows, print selected events
 while True:
     if row[0] == 'BeginEvent':
         event_counter += 1
@@ -24,7 +26,4 @@ while True:
                 row_counter += 1
     row = next(reader_mod)
     row_counter += 1
-                
-                
-                
-                
+                   
