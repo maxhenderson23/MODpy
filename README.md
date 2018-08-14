@@ -7,6 +7,8 @@ It is an adaption of MODAnalyzer for implementation with python.
 Ensure that fastjet is installed and compiled.   
 (http://www.fastjet.fr)   
 
+###############################################################################  
+
 <b>Process rough workflow:</b>   
 Parse reads MOD_file(s) in the input folder.   
 It calls the analyzeMOD function which removes 'bad' events due to: lumi blocks, trigger effects, Jet Quality Criteria, Fastjet comparison.   
@@ -24,7 +26,7 @@ e.g. "python3 ~/Documents/MOD_files ~/Documents/MODpy_output 10000"
 Print_MOD_file will print selected events from an argument input MOD file to allow manual comparison.  
 Dat_file_length_check will compare the number of events in two argument input dat files, and print the first event difference where one exists.   
 
-###################################################################  
+###############################################################################  
 <b>TO DO:</b>   
 Modify dat file structure to contain all events (including bad, with reason why rejected)   
 Implement: CHS, pileup   
