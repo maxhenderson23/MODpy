@@ -19,6 +19,7 @@ This code runs using python3.
 ...command to run the code from the MODpy folder is:  
 python3 parse.py ~/path/to/folder/containing/MOD_files ~/output/folder/for/dat_files [optional] Number_of_events_limiter [optional]  
 e.g. "python3 ~/Documents/MOD_files ~/Documents/MODpy_output 10000"   
+Note if not specifying an output directory MODpy will attempt to write to ../MODpy_output. Please ensure this directory exists.
 
 ######Comments about the plotting mechanism - for Joe to fill in#######   
 
