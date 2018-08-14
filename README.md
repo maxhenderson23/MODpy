@@ -15,7 +15,7 @@ It calls the analyzeMOD function which removes 'bad' events due to: lumi blocks,
 It then creates a .dat file of the two hardest jet objects.  
 Plot_dat then generates plots from this.   
 
-This code runs using python3. 
+This code runs using python3.   
 ...command to run the code from the MODpy folder is:  
 python3 parse.py ~/path/to/folder/containing/MOD_files ~/output/folder/for/dat_files [optional] Number_of_events_limiter [optional]  
 e.g. "python3 ~/Documents/MOD_files ~/Documents/MODpy_output 10000"   
