@@ -4,14 +4,14 @@ This repository has code to analyze MOD (MIT Open Data) files produced using [MO
 It is an adaption of MODAnalyzer for implementation with python.    
 (https://github.com/prekshan/MODAnalyzer/tree/master).  
 
+Ensure that fastjet is installed and compiled.   
+(http://www.fastjet.fr)   
+
 <b>Process rough workflow:</b>   
 Parse reads MOD_file(s) in the input folder.   
 It calls the analyzeMOD function which removes 'bad' events due to: lumi blocks, trigger effects, Jet Quality Criteria, Fastjet comparison.   
 It then creates a .dat file of the two hardest jet objects.  
 Plot_dat then generates plots from this.   
-
-Ensure that fastjet is installed and compiled.   
-(http://www.fastjet.fr)   
 
 This code runs using python3. 
 ...command to run the code from the MODpy folder is:  
