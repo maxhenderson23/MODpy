@@ -1,5 +1,6 @@
 # MODpy
-This repository has code to analyze MOD (MIT Open Data) files produced using [MODProducer](https://github.com/rmastand/MODProducer "MODProducer" for latest version).
+This repository has code to analyze MOD (MIT Open Data) files produced using [MODProducer]
+(https://github.com/rmastand/MODProducer "MODProducer" for latest version).
 It is an adaption of MODAnalyzer for implementation with python.
 (https://github.com/prekshan/MODAnalyzer/tree/master)
 
