@@ -83,8 +83,8 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                         
                 #Save the trigger equivalent to the current pT, and respective prescale
                 if highest_lower_trig_threshold in current_triggers_fired:
-                    Selected_trigger = highest_lower_trig_threshold                         
-                    Selected_trigger_prescale = current_prescales[current_triggers_fired.index(highest_lower_trig_threshold)]
+                    selected_trigger = highest_lower_trig_threshold                         
+                    selected_trigger_prescale = current_prescales[current_triggers_fired.index(highest_lower_trig_threshold)]
                 if highest_lower_trig_threshold not in current_triggers_fired:
                     good_event = False
                     if (count-1)%k == 0 and count>0:
@@ -109,7 +109,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                 else:
                     if (count-1)%k == 0:
                         print("the hardest AK5 is ", current_hardest_AK5)
-                        print("the current triggers are ",Selected_trigger)
+                        print("the current triggers are ",selected_trigger)
                         print("trigger fired properly, loose JQC passed, jet quality set to 1, continue to process event")
 
                         print("the hardest AK5 is ", ak5_hardest)
