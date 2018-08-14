@@ -2,7 +2,7 @@
 import csv
 import sys
 
-#Input MOD file
+#Input MOD file as argument
 MOD = sys.argv[1]
 
 reader_mod = csv.reader(open(MOD), delimiter=' ', skipinitialspace = 1)

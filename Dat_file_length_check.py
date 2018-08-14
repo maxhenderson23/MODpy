@@ -11,13 +11,13 @@ Dat2 = sys.argv[2]
 counter1 = 0
 reader1 = csv.reader(open(Dat1), delimiter=' ', skipinitialspace = 1)
 for row in reader1:
-    if row[0] == 'Entry':
+    if row[0] == 'Entry' or row[0] == 'MODpy_entry':
         counter1 += 1
         
 counter2 = 0
 reader2 = csv.reader(open(Dat2), delimiter=' ', skipinitialspace = 1)
 for row in reader2:
-    if row[0] == 'Entry':
+    if row[0] == 'Entry' or row[0] == 'MODpy_entry':
         counter2 += 1
 
 #Print counters
@@ -37,10 +37,10 @@ if counter1 != counter2:
         row_b = next(reader2) 
         counterb += 1
         
-        while row_a[0] != 'Entry':
+        while row_a[0] != 'Entry' and row_a[0] != 'MODpy_entry':
                row_a = next(reader1)
                countera += 1 
-        while row_b[0] != 'Entry':
+        while row_b[0] != 'Entry' and row_b[0] != 'MODpy_entry':
                row_b = next(reader2)
                counterb += 1
                
