@@ -1,23 +1,30 @@
 # MODpy
-python MOD analyser
-
-// test
+This repository has code to analyze MOD (MIT Open Data) files produced using [MODProducer](https://github.com/rmastand/MODProducer "MODProducer" for latest version).
+It is an adaption of MODAnalyzer for implementation with python.
+(https://github.com/prekshan/MODAnalyzer/tree/master)
 
 Process rough workflow: 
-Parse reads MOD_file, removes 'bad' events due to lumi blocks, trigger effects, JQC, Fastjet comparison, then creates a .dat file of the hardest jet objects
+Parse reads MOD_file(s) in the input folder. 
+It calls the analyzeMOD function which removes 'bad' events due to: lumi blocks, trigger effects, Jet Quality Criteria, Fastjet comparison.
+It then creates a .dat file of the two hardest jet objects.
 Plot_dat then generates plots from this 
 
-Main script reads in a MOD_file
+Ensure that fastjet is installed and compiled.
+(http://www.fastjet.fr)
 
-Uses lumi script to cross check with the 'good' lumi events and creates a list of all the good event start&end row numbers in the MOD file.
+This code runs using python3
+...command to run the code from the MODpy folder is:
+python3 parse.py ~/path/to/folder/containing/MOD_files ~/output/folder/for/dat_files [optional] Number_of_events_limiter [optional]
+e.g. "python3 ~/Documents/MOD_files ~/Documents/MODpy_output 10000"
 
-Uses trigger script to scan each good event, find the largest trigger that fired, and check whether the largest AK5 jet pT value corresponds to the fired triggers' respective pT range (after JEC scaling).
-Events where no trigger fired, or there is not agreement with trigger ranges, or the hardest jet does not meet the loose JQC are removed from the list of 'good' events.
+######Comments about the plotting mechanism - for Joe to fill in#######
 
-Uses FJ_jet_generator script to regenerate the jets for each event from the PFCs, then the match_jet function to cross check with the AK5s. 
-Events where the cross_check is not shown to agree are removed from the list of good events, the remaining good events have the FJ generated jet information saved also.
+Cross-checking scripts are provided: 
+Print_MOD_file will print selected events from an argument input MOD file to allow manual comparison.
+Dat_file_length_check will compare the number of events in two argument input dat files, and print the first event difference where one exists.
 
-Plotting..... read MOD/dat?... add observables to lists, run np.histogram, plot
-"""
-
-mkdir ../MODpy_output/
+##############################################################################################################################
+TO DO:
+Modify dat file structure to contain all events (including bad, with reason why rejected)
+Implement: CHS, pileup
+Introduce: Sim/GEN data, Machine-learning methods
