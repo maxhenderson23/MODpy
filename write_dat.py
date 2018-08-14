@@ -1,6 +1,6 @@
-import csv
+spacing = 30
 
-dat_header = ['#', 'Entry', 'prescale', 'multiplicity', 'mul_pre_SD', 
+dat_header = ['# MODpy_entry', 'prescale', 'multiplicity', 'mul_pre_SD', 
               'events_being_read', 'hardest_pT', 'jec', 'jet_quality', 
               'hardest_eta', 'crosssection', 'trigger_fired', 
               'hardest_phi', 'hardest_area', 'zg_05', 'mu_05', 'rg_05', 
@@ -24,15 +24,25 @@ dat_header = ['#', 'Entry', 'prescale', 'multiplicity', 'mul_pre_SD',
               'track_thrust_post_SD']
 
 def write_dat_header(writer):
-    writer.writerow(dat_header)
+    
+    dat_row = []
+    
+    for col in dat_header:
+        dat_row.append(col)
+        
+        #add extra spaces up to a multiple of 2     
+        extraspace = spacing - len(dat_row[-1])
+        dat_row.append(' '*(int(extraspace/2) - 1))
+    
+    writer.writerow(dat_row)
 
 def write_dat_event(writer, event):
     
-    dat_row = ['Entry']
+    dat_row = []
     
     for col in dat_header:
-        if col == '#' or col == 'Entry':
-            continue
+        if col == '# MODpy_entry':
+            dat_row.append(' MODpy_entry')
         elif col == 'prescale':
             dat_row.append(str(event.prescale()))
         elif col == 'mul_pre_SD':
@@ -56,4 +66,8 @@ def write_dat_event(writer, event):
         else:
             dat_row.append('nan')
 
+        #add extra spaces up to a multiple of 2     
+        extraspace = spacing - len(dat_row[-1])
+        dat_row.append(' '*(int(extraspace/2) - 1))
+    
     writer.writerow(dat_row)
