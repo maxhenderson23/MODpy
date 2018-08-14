@@ -4,7 +4,7 @@ This repository has code to analyze MOD (MIT Open Data) files produced using [MO
 It is an adaption of MODAnalyzer for implementation with python.    
 (https://github.com/prekshan/MODAnalyzer/tree/master).  
 
-Process rough workflow:   
+<b>Process rough workflow:<b />   
 Parse reads MOD_file(s) in the input folder.   
 It calls the analyzeMOD function which removes 'bad' events due to: lumi blocks, trigger effects, Jet Quality Criteria, Fastjet comparison.   
 It then creates a .dat file of the two hardest jet objects.  
@@ -20,12 +20,12 @@ e.g. "python3 ~/Documents/MOD_files ~/Documents/MODpy_output 10000"
 
 ######Comments about the plotting mechanism - for Joe to fill in#######   
 
-Cross-checking scripts are provided:   
+<b>Cross-checking scripts are provided:<b/>   
 Print_MOD_file will print selected events from an argument input MOD file to allow manual comparison.  
 Dat_file_length_check will compare the number of events in two argument input dat files, and print the first event difference where one exists.   
 
 ###################################################################  
-TO DO:   
+<b>TO DO:<b/>   
 Modify dat file structure to contain all events (including bad, with reason why rejected)   
 Implement: CHS, pileup   
 Introduce: Sim/GEN data, Machine-learning methods    
