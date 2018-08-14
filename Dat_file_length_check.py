@@ -24,7 +24,7 @@ for row in reader2:
 print('# Events in dat file 1: ',counter1)
 print('# Events in dat file 2: ',counter2)
 
-#Direct checks: output first different event jet, in dat if theres a difference in length      
+#Direct checks: output first different event jet between dat files if theres a difference in length      
 if counter1 != counter2:
     reader1 = csv.reader(open(Dat1), delimiter=' ', skipinitialspace = 1)
     reader2 = csv.reader(open(Dat2), delimiter=' ', skipinitialspace = 1)

@@ -10,7 +10,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     count = 0
     valid_event_count = 0
     section_name = ''
-    k = 1
+    k = 1000
     accepted_events_counter = 0
     
     #Define FastJet parameters, and the algorithm
@@ -20,7 +20,6 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     #initialize the parameters for the current event
     '''AK5 jets stored as a list of strings corresponding to each entry of the row in the MOD file.
     The last entry is pT**2, saved as a floating point variable.'''
-    
     def init_event_vars():
         return (["default", 0.0], ["default", 0.0], [], [], [], 1.0, -1, [])
     #to use this function, copy the next line
@@ -83,7 +82,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                     Selected_trigger_prescale = current_prescales[current_triggers_fired.index(highest_lower_trig_threshold)]
                 if highest_lower_trig_threshold not in current_triggers_fired:
                     good_event = False
-                    if count%k == 0 and count>0:
+                    if (count-1)%k == 0 and count>0:
                         print("the hardest AK5 pT squared is " + str(current_hardest_AK5[-1]) + " and the trigger is " + highest_lower_trig_threshold + " with threshold " + str(squared_trigger_ranges[highest_lower_trig_threshold]))
                         print("the hardest AK5 (with JEC) is smaller than the trigger fired, hence this event is rejected, exiting event")
                     continue
@@ -105,14 +104,14 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                         current_jet_quality = 2
                     else:
                         current_jet_quality = 1
-                    if (count%k-1) == 0:
+                    if (count-1)%k == 0:
                         print("the hardest AK5 is ", current_hardest_AK5)
                         print("the current triggers are ",Selected_trigger)
                         print("trigger fired properly, loose JQC passed, jet quality set to 1, continue to process event")
             
             #Begin reading the new section
             section_name = row[1]
-            if (count%k-1) == 0:
+            if (count-1)%k == 0:
                 print("beginning to read in section " + section_name)
             continue
         
@@ -120,12 +119,12 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
         if section_name == "Cond":
             if lumi.search_lumi((row[1], row[3]), lumi_runs_and_blocks):
                 current_hardest_AK5, current_second_AK5, Pseudojet_particles, current_jets, current_prescales, current_jec, current_jet_quality, current_triggers_fired = init_event_vars()
-                if count%k == 0 and count>0:
+                if (count-1)%k == 0 and count>0:
                     print("the event # " + str(count)+ " passed the check with lumi block (" + row[1] + ", " + row[3] + ")")
                 continue
             else:
                 good_event = False
-                if (count%k-1) == 0:
+                if (count-1)%k == 0:
                     print("this event does not exist in the good lumi block file, exiting event")
             continue
         
@@ -174,7 +173,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
 
                 event = Event([FJ_hardest, FJ_second_hardest], Selected_trigger_prescale, current_jec, current_jet_quality, Selected_trigger)
                 write_dat.write_dat_event(dat_file, event)
-                if count%k == 0 and count>0:
+                if (count-1)%k == 0 and count>0:
                     accepted_events_counter += 1
                     print("Event validated with fastjet, and written to .dat, event #: ",str(count),'accepted event #:',accepted_events_counter)
                     print('##############################################################')
