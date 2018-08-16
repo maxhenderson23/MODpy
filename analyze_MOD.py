@@ -194,7 +194,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
 
                 if (count-1)%k == 0:
                     valid_event_count += 1
-                    print("Event validated with fastjet, and written to .dat, event #: ",str(count),'accepted event #:',valid_event_count)
+                    print("Event validated with fastjet, and written to .dat, event #: ",str(count),', accepted event #:',valid_event_count)
                     print('##############################################################')
             if valid_event_count == event_limit:
                 break
