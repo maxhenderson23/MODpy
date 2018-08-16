@@ -3,9 +3,8 @@
 # constraint are denoted <var name>:<lower bound>:<upper bound>, bound can be None
 # format: Settings,<var name>,<plot filename>,<plot title>,<x axis text>,<y axis text>,<x range>,<# of bins>,<log scale y axis (True or False)>,<constraint>(, <possibly more constraint>)
 --------------------------------Setting Code Here---------------------------------------
-
 #Settings,hardest_pT,hardest jet pT,hardest jet $p_T$,hardest jet $p_T$ $[GeV]$,diff. cross-section $[\mu b/GeV]$,(0:2000),100,True,hardest_eta:-2.4:2.4,hardest_pT:90:Infinity,jet_quality:3:Infinity
-Settings,track_mul_pre_SD,hardest jet track multiplicity,hardest jet track multiplicity,hardest jet track multiplicity,diff. cross-section $[\mu b]$,(0:50),100,False,hardest_eta:-2.4:2.4,hardest_pT:90:Infinity,jet_quality:3:Infinity
+Settings,track_mul_pre_SD,hardest jet track multiplicity,hardest jet track multiplicity,hardest jet track multiplicity,diff. cross-section $[\mu b]$,(0:100),100,True,hardest_eta:-2.4:2.4,hardest_pT:90:Infinity,jet_quality:3:Infinity
 #^addition by Ed for track mul plot...
 
 ----------------------------------------------------------------------------------------

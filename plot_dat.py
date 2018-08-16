@@ -46,7 +46,6 @@ def read_dat_to_list(var_name, effective_lumi_dic_for_DAT_file, DAT_file, constr
         if row[0]=="#":
             for i, key in enumerate(row[1:]):
                 column_keys[key] = i
-        
         else:
             constraints_satisfied = True
             for key in constraints:
@@ -103,7 +102,7 @@ for data in plot_data:
     data_files = [os.path.split(data_file)[1] for data_file in data_files if ".dat" in os.path.split(data_file)[1]]
     
     scaling_factors = load_effective_lumi("./effective_luminosity_by_trigger.csv", data_files)
-    
+
     hist_data = []
     bin_edges = []
     sum_squared_weights = []
