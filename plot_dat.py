@@ -52,6 +52,16 @@ def read_dat_to_list(var_name, effective_lumi_dic_for_DAT_file, DAT_file, constr
                 if not constraints[key][0] <= float(row[column_keys[key]]) <= constraints[key][1]:
                     constraints_satisfied = False
                     break
+                ###PATCH for central forward splitting in eta
+                if cen_forw == 1: #central
+                    if not -0.8 <= float(row[column_keys["hardest_eta"]]) <= 0.8:
+                        constraints_satisfied = False
+                        break
+                if cen_forw == 2: #forward
+                    if -0.8 <= float(row[column_keys["hardest_eta"]]) <= 0.8:
+                        constraints_satisfied = False
+                        break
+                ###PATCH end
             if constraints_satisfied:
                 var_list.append(float(row[column_keys[var_name]]))
                 scale_list.append(scaling_factors[row[column_keys["trigger_fired"]]])
@@ -96,37 +106,43 @@ pl.figure(plot_name)
 pl.title(plot_title)
 
 ###################################################################################################################
-
-for data in plot_data:
-    data_files = os.listdir(data["dir"])
-    data_files = [os.path.split(data_file)[1] for data_file in data_files if ".dat" in os.path.split(data_file)[1]]
+for cen_forw in [1,2]:
+    for data in plot_data:
+        data_files = os.listdir(data["dir"])
+        data_files = [os.path.split(data_file)[1] for data_file in data_files if ".dat" in os.path.split(data_file)[1]]
+        
+        scaling_factors = load_effective_lumi("./effective_luminosity_by_trigger.csv", data_files)
     
-    scaling_factors = load_effective_lumi("./effective_luminosity_by_trigger.csv", data_files)
-
-    hist_data = []
-    bin_edges = []
-    sum_squared_weights = []
-    count = 0
-
-    for i in range(no_of_bins):
-        hist_data.append(0.0)
-        sum_squared_weights.append(0.0)
+        hist_data = []
+        bin_edges = []
+        sum_squared_weights = []
+        count = 0
     
-    for data_file in data_files:
-        DAT_file = csv.reader(open(data["dir"] + data_file), delimiter=' ', skipinitialspace = 1)
+        for i in range(no_of_bins):
+            hist_data.append(0.0)
+            sum_squared_weights.append(0.0)
+        
+        for data_file in data_files:
+            DAT_file = csv.reader(open(data["dir"] + data_file), delimiter=' ', skipinitialspace = 1)
+        
+            (var_list, scale_list) = read_dat_to_list(var_name, scaling_factors, DAT_file, constraints)
+            (current_hist_data, bin_edges) = np.histogram(var_list, bins=no_of_bins, range = x_range, weights = [x*no_of_bins/(x_range[1]-x_range[0]) for x in scale_list])
+            hist_data = list(map(add, current_hist_data, hist_data))
+            (current_sum_squared_weights, whatever) = np.histogram(var_list, bins=no_of_bins, range = x_range, weights = [(x*no_of_bins/(x_range[1]-x_range[0])) * (x*no_of_bins/(x_range[1]-x_range[0])) for x in scale_list])
+            sum_squared_weights = list(map(add, sum_squared_weights, current_sum_squared_weights))
+            count += len(var_list)
+        
+        ###PATCH for central forward splitting 
+        if cen_forw == 1:
+            pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=np.sqrt(sum_squared_weights), label='central', fmt = 'r.')
+        if cen_forw == 2:
+            pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=np.sqrt(sum_squared_weights), label='forward', fmt = 'b.')
+        ###PATCH end, unhash subsequent line
+        #pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=np.sqrt(sum_squared_weights), label=data["label"]), fmt = data["fmt"])
     
-        (var_list, scale_list) = read_dat_to_list(var_name, scaling_factors, DAT_file, constraints)
-        (current_hist_data, bin_edges) = np.histogram(var_list, bins=no_of_bins, range = x_range, weights = [x*no_of_bins/(x_range[1]-x_range[0]) for x in scale_list])
-        hist_data = list(map(add, current_hist_data, hist_data))
-        (current_sum_squared_weights, whatever) = np.histogram(var_list, bins=no_of_bins, range = x_range, weights = [(x*no_of_bins/(x_range[1]-x_range[0])) * (x*no_of_bins/(x_range[1]-x_range[0])) for x in scale_list])
-        sum_squared_weights = list(map(add, sum_squared_weights, current_sum_squared_weights))
-        count += len(var_list)
-
-    pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=np.sqrt(sum_squared_weights), label=data["label"], fmt = data["fmt"])
-
-    print("the total cross section is " + str(sum(hist_data)*(x_range[1]-x_range[0])/no_of_bins))
-    print("the number of events plotted for files in " + data["dir"] + " is " + str(count))
-
+        print("the total cross section is " + str(sum(hist_data)*(x_range[1]-x_range[0])/no_of_bins))
+        print("the number of events plotted for files in " + data["dir"] + " is " + str(count))
+    
 ######################################################################################################################################################
 
 def stringify_number(number):
