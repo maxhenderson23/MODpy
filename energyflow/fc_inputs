@@ -1,0 +1,73 @@
+X_input = ['mass_pre_SD', 'mul_pre_SD']
+y_input = ['hardest_eta']
+
+# return the tag 0 for a central jet, 1 for a forwards jet
+def get_tags(dic_y):
+    
+    arr_y = []
+    
+    for eta in dic_y['hardest_eta']:
+        abs_eta = np.abs(eta)
+    
+        # central jet
+        if abs_eta < 0.8: 
+            arr_y.append(0)
+        
+        # forwards jet
+        elif abs_eta < 2.4:
+            arr_y.append(1)
+        
+        # ignorable jet
+        else:
+            arr_y.append(-1)
+    
+    return arr_y
+            
+def refine_data(arr_X, arr_y):
+    
+    new_X = []
+    new_y = []
+    
+    for i in range(len(arr_y)):
+        if arr_y[i] != -1:
+            
+            new_X.append(arr_X)
+            new_y.append(arr_y)
+    
+    X = np.matrix(arr_X)
+    y = np.array(arr_y)
+    
+    return [X, y]
+    
+arr_X = []
+arr_y = []
+dic_y = {'hardest_eta':[]}
+
+for row in datreader:
+    
+    # save the first row
+    if is_header:
+        datheader = row
+        is_header = False
+        continue
+    
+    arr_X.append([])
+    
+    for [i, col] in enumerate(datheader):
+        if col in X_input:
+            if '.' in row[i-1]:
+                arr_X[-1].append(float(row[i-1]))
+            else:
+                arr_X[-1].append(int(row[i-1]))
+
+        if col in y_input:
+            if '.' in row[i-1]:
+                dic_y[col].append(float(row[i-1]))
+            else:
+                dic_y[col].append(int(row[i-1]))
+
+################################################################################
+
+# load data
+arr_y = get_tags(dic_y)
+X, y  = refine_data(arr_X, arr_y)

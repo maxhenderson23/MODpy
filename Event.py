@@ -6,9 +6,6 @@ class Event:
         self.__jet_quality   = jet_quality
         self.__trigger_fired = trigger_fired
 
-        #print("########################Initialising event, \nhardest pt = " + str(self.__jets[0].pt()) + "\nsecond pt = " + str(self.__jets[1].pt()))
-
-
     def jets(self):
         return self.__jets
     
@@ -17,6 +14,13 @@ class Event:
     
     def mass_pre_SD(self):
         return self.__jets[0].m()
+    
+    def hardest_consts(self):
+        #returns constituents 4-momenta in EnergyFlow format [E,px,py,pz]
+        p_mus = [[const.e(), const.px(), const.py(), const.pz()]
+                 for const in self.__jets[0].constituents()]
+        
+        return p_mus
     
     def hardest_pT(self):
         return self.__jets[0].pt()*self.__jec

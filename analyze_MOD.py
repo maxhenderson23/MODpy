@@ -5,8 +5,9 @@ from match_jets import match_jets
 from Event import Event
 from AK5 import AK5
 import write_dat
+import write_consts
 
-def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
+def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_limit):
     good_event = True
     count = 0
     valid_event_count = 0
@@ -32,8 +33,9 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     current_jec, current_jet_quality, current_triggers_fired, selected_trigger,
     current_prescales, selected_prescale] = init_event_vars()
 
-    #Write the .dat header
+    #Write the file headers
     write_dat.write_dat_header(dat_file)
+    write_consts.write_consts_header(consts_file)
     
     for row in MOD_file:
         
@@ -189,6 +191,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                               ak5_hardest.quality(), selected_trigger)
 
                 write_dat.write_dat_event(dat_file, event)
+                write_consts.write_consts_event(consts_file, event)
 
                 if (count-1)%k == 0:
                     valid_event_count += 1
