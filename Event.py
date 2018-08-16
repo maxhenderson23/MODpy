@@ -1,5 +1,9 @@
+#Define reclustering algorithm for track jets
 import fastjet as fj
+R = fj.JetDefinition.max_allowable_R #arbitrary large ~ ----> inf
+jet_def_cambridge = fj.JetDefinition(fj.cambridge_algorithm,R)
 
+#Event class
 class Event:
     def __init__(self, jets, prescale, jec, jet_quality, trigger_fired):
         self.__jets          = jets
@@ -56,28 +60,25 @@ class Event:
     
     def set_trigger_fired(self, trigger_fired):
         self.__trigger_fired = trigger_fired
-        
-    '''  
+          
     def track_mass_pre_SD(self):
-        track_jets = [filter_charged(self.__jets[jet].constituents()) for jet in range(len(self.__jets))]
-                
-        
-        
-        #Need to redefine a jet clustering algorithm of infinite radius, then take jet.m() of that new object...
-        ClusterSequence.cs_track1(track_constit_hardest, jet_def_cambridge) #Unsure if this is correct structure? see preksha's analyze.cc
-        ClusterSequence.cs_track2(track_constit_second, jet_def_cambridge)
-        track_jet_hardest = cs_track1.inclusive_jets()[0]
-        track_jet_second = cs_track2.inclusive_jets()[0]  
-        return 
-    '''
+        #Filter the jets particles into just lists of the charged particles (as pseudojets)
+        track_jets = [filter_charged(jet.constituents()) for jet in self.__jets]
+        track_masses = []
+        #Recalculate the clustering for only the charged particles in the jets
+        for jet in track_jets:
+            fastjet = jet_def_cambridge(jet)
+            #Append the mass of the regenerated jet to a list for output
+            if len(fastjet) != 0:   #Sometimes there are no charged particles in one of the jets => omit jet
+                track_masses.append(fastjet[0].m())
+        return track_masses[0]      #Just returns hardest jet for that event, need to edit dat so each entry is both jets of event
+    
     def track_mul_pre_SD(self):
-        track_jets = [filter_charged(self.__jets[jet].constituents()) for jet in range(len(self.__jets))]
+        #Filter the jets particles into just lists of the charged particles (as pseudojets)
+        track_jets = [filter_charged(jet.constituents()) for jet in self.__jets]
         Track_muls = [len(track_jet) for track_jet in track_jets]
         return Track_muls[0]        #Just returns hardest jet for that event, need to edit dat so each entry is both jets of event
     
-#Define reclustering algorithm for track jets
-R = float(1e32) #arbitrary large ~ ----> inf
-jet_def_cambridge = fj.JetDefinition(fj.cambridge_algorithm,R)
 
  
 #Define function to select and return only track constituents in a Jet
