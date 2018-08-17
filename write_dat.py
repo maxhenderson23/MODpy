@@ -63,6 +63,10 @@ def write_dat_event(writer, event):
             dat_row.append(str(event.jet_quality()))
         elif col == 'trigger_fired':
             dat_row.append(str(event.trigger_fired()))
+        elif col == 'track_mass_pre_SD':
+            dat_row.append(str(event.track_mass_pre_SD()))
+        elif col == 'track_mul_pre_SD':
+            dat_row.append(str(event.track_mul_pre_SD()))
         else:
             dat_row.append('nan')
 

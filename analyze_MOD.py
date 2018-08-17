@@ -155,7 +155,9 @@ def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_lim
 
         #Update list of PFC four-momenta
         if row[0] == "PFC":
-            pseudojet_particles.append(fj.PseudoJet(float(row[1]),float(row[2]),float(row[3]),float(row[4])))
+            psJ = fj.PseudoJet(float(row[1]),float(row[2]),float(row[3]),float(row[4]))
+            psJ.set_user_index(int(row[5]))
+            pseudojet_particles.append(psJ)
             continue
 
         #End event; perform FastJet checks
@@ -186,7 +188,7 @@ def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_lim
                 if (count-1)%k == 0:
                     print("Fastjet matching passed, writing event to dat file.")
                 
-                #Write to the Event class and then to the .dat file
+                #Write to the Event class and then to the .dat file (Note this is just one event per line in the dat file (for both hardest jets))
                 event = Event([fj_hardest, fj_second], selected_prescale, ak5_hardest.jec(),
                               ak5_hardest.quality(), selected_trigger)
 
@@ -195,7 +197,7 @@ def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_lim
 
                 if (count-1)%k == 0:
                     valid_event_count += 1
-                    print("Event validated with fastjet, and written to .dat, event #: ",str(count),'accepted event #:',valid_event_count)
+                    print("Event validated with fastjet, and written to .dat, event #: ",str(count),', accepted event #:',valid_event_count)
                     print('##############################################################')
             if valid_event_count == event_limit:
                 break
