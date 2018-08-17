@@ -40,22 +40,19 @@ except:
 ################################### SETTINGS ###################################
 
 # data controls
-num_data = 3395
+num_data = -1 #just use all data available
 test_frac = 0.2
 
 # efp parameters
-dmax = 5 #3-4
+dmax = 7 #3-4
 measure = 'hadr'
 beta = 0.5
 
 # plotting
-colors = ['tab:red', 'tab:orange', 'tab:olive', 'tab:green', 'tab:blue']
+colors = ['tab:red', 'tab:orange', 'tab:olive', 'tab:green', 'tab:blue', 'tab:purple', 'tab:pink']
 
 # load data
 X, y = load_fc_data(num_data)
-
-print(X)
-print(y)
 
 print()
 print('Loaded forward and central jets')
@@ -105,6 +102,8 @@ if plt:
     plt.rcParams['font.family'] = 'serif'
     plt.rcParams['figure.autolayout'] = True
 
+    plt.plot([1,0], [0,1], '-', color='k', 
+             label='Random tagger')
     # iterate over the ROC curves and plot them
     for i,d in enumerate(range(1, dmax+1)):
         plt.plot(rocs[i][1], 1-rocs[i][0], '-', color=colors[i], 

@@ -1,7 +1,8 @@
 import numpy as np
 import csv
 
-constsfile = '../../MODpy_output/000D4260-D23E-E311-A850-02163E008D77.consts'
+constsfiles = ['../../MODpy_output/000D4260-D23E-E311-A850-02163E008D77.consts',
+               '../../MODpy_output/00E41BFD-D93E-E311-A91D-0025901D5DEC.consts']
 
 # return the tag 0 for a central jet, 1 for a forwards jet
 def get_tags(etas):
@@ -25,7 +26,7 @@ def get_tags(etas):
     
     return y
 
-# remove ignorable jets from dataset and convert to linear algebra format
+# remove ignorable jets from dataset and convert to numpy array format in the correct dimensions
 def refine_data(pre_X, pre_y, num_events):
     
     #find the event with the most constituents
@@ -35,7 +36,7 @@ def refine_data(pre_X, pre_y, num_events):
         if len(x) > most_consts:
             most_consts = len(x)
     
-    #
+    #construct X and y in the correct shape
     new_X = np.empty((num_events, most_consts, 4))
     new_y = np.empty((num_events), dtype=bool)
     
@@ -52,29 +53,37 @@ def refine_data(pre_X, pre_y, num_events):
     
     return [new_X, new_y]
 
-def load_fc_data(num_events):
-    reader = csv.reader(open(constsfile), delimiter=' ', skipinitialspace=True)
-    event_count = -1
+def load_fc_data(num_events=-1):
     
+    event_count = -1
     X    = []
     etas = []
     
-    for row in reader:
+    #get data from consts files
+    for file in constsfiles:
+        reader = csv.reader(open(file), delimiter=' ', skipinitialspace=True)
+        is_header = True
         
-        #new event: record eta
-        if row[0] == '#':
-            event_count += 1
-            etas.append(float(row[-1]))
-            X.append([])
-            continue
+        for row in reader:
+            
+            #ignore_header
+            if is_header:
+                is_header = False
+                continue
+            
+            #new event: record eta
+            if row[0] == '#':
+                event_count += 1
+                etas.append(float(row[-1]))
+                X.append([])
+                continue
+            
+            X[-1].append([float(val) for val in row])
         
-        #ignore_header
-        if event_count == -1:
-            continue
-        
-        X[-1].append([float(val) for val in row])
+    if num_events == -1:
+        num_events = event_count
+        print('num_events set to ' + str(event_count))
     
-    print(event_count)
-    
+    #get X,y in the correct form
     y = get_tags(etas)
     return refine_data(X, y, num_events)
