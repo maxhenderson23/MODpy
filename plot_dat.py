@@ -54,11 +54,11 @@ def read_dat_to_list(var_name, effective_lumi_dic_for_DAT_file, DAT_file, constr
                     break
                 ###PATCH for central forward splitting in eta
                 if cen_forw == 1: #central
-                    if not -0.8 <= float(row[column_keys["hardest_eta"]]) <= 0.8:
+                    if not -0.6 <= float(row[column_keys["hardest_eta"]]) <= 0.6:
                         constraints_satisfied = False
                         break
                 if cen_forw == 2: #forward
-                    if -0.8 <= float(row[column_keys["hardest_eta"]]) <= 0.8:
+                    if -1. <= float(row[column_keys["hardest_eta"]]) <= 1.:
                         constraints_satisfied = False
                         break
                 ###PATCH end
@@ -138,7 +138,7 @@ for cen_forw in [1,2]:
         if cen_forw == 2:
             pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=np.sqrt(sum_squared_weights), label='forward', fmt = 'b.')
         ###PATCH end, unhash subsequent line
-        #pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=np.sqrt(sum_squared_weights), label=data["label"]), fmt = data["fmt"])
+        #pl.errorbar((bin_edges[:-1] + bin_edges[1:])/2, hist_data, yerr=np.sqrt(sum_squared_weights), label=data["label"], fmt = data["fmt"])
     
         print("the total cross section is " + str(sum(hist_data)*(x_range[1]-x_range[0])/no_of_bins))
         print("the number of events plotted for files in " + data["dir"] + " is " + str(count))
