@@ -6,8 +6,8 @@
 #Settings,hardest_pT,hardest jet pT,hardest jet $p_T$,hardest jet $p_T$ $[GeV]$,diff. cross-section $[\mu b/GeV]$,(0:2000),100,True,hardest_eta:-2.4:2.4,hardest_pT:90:Infinity,jet_quality:3:Infinity
 
 #ed's additons for cen-for plotting
-Settings,track_mass_pre_SD,hardest jet track mass,hardest jet track mass (full eta range),hardest jet track mass $[GeV]$,diff. cross-section $[\mu b/GeV]$,(0:50),100,False,hardest_eta:-1.9:1.9,hardest_pT:90:Infinity,jet_quality:3:Infinity
-#Settings,track_mul_pre_SD,hardest jet track multiplicity,hardest jet track multiplicity,hardest jet track multiplicity,diff. cross-section $[\mu b]$,(0:50),100,False,hardest_eta:-1.9:1.9,hardest_pT:90:Infinity,jet_quality:3:Infinity
+#Settings,track_mass_pre_SD,hardest jet track mass,hardest jet track mass (full eta range),hardest jet track mass $[GeV]$,diff. cross-section $[\mu b/GeV]$,(0:50),100,False,hardest_eta:-1.9:1.9,hardest_pT:90:Infinity,jet_quality:3:Infinity
+Settings,track_mul_pre_SD,hardest jet track multiplicity,hardest jet track multiplicity,hardest jet track multiplicity,diff. cross-section $[\mu b]$,(0:50),100,False,hardest_eta:-1.9:1.9,hardest_pT:90:Infinity,jet_quality:3:Infinity
 #^addition by Ed for track mul plot...
 
 ----------------------------------------------------------------------------------------

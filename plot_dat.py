@@ -54,11 +54,11 @@ def read_dat_to_list(var_name, effective_lumi_dic_for_DAT_file, DAT_file, constr
                     break
                 ###PATCH for central forward splitting in eta
                 if cen_forw == 1: #central
-                    if not -0.6 <= float(row[column_keys["hardest_eta"]]) <= 0.6:
+                    if not -0.8 <= float(row[column_keys["hardest_eta"]]) <= 0.8:
                         constraints_satisfied = False
                         break
                 if cen_forw == 2: #forward
-                    if -1. <= float(row[column_keys["hardest_eta"]]) <= 1.:
+                    if -0.8 <= float(row[column_keys["hardest_eta"]]) <= 0.8:
                         constraints_satisfied = False
                         break
                 ###PATCH end
@@ -106,7 +106,9 @@ pl.figure(plot_name)
 pl.title(plot_title)
 
 ###################################################################################################################
+#PATCH for for-cen plotting
 for cen_forw in [1,2]:
+#PATCH end
     for data in plot_data:
         data_files = os.listdir(data["dir"])
         data_files = [os.path.split(data_file)[1] for data_file in data_files if ".dat" in os.path.split(data_file)[1]]
