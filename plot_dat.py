@@ -32,7 +32,7 @@ def load_effective_lumi(effective_lumi_file_dir, data_files):
     #We scale by inverse the total lumi
     scaling_factors = {}
     for x in total_effective_lumi:
-        scaling_factors[x] = 1.0/total_effective_lumi[x]
+        scaling_factors[x] = 1.0/total_effective_lumi[x] #Shouldnt be normalising by total lumi? ...ask preksha
 
     return scaling_factors
 
