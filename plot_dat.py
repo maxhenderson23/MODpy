@@ -106,7 +106,7 @@ pl.figure(plot_name)
 pl.title(plot_title)
 
 ###################################################################################################################
-#PATCH for for-cen plotting
+#PATCH for central(1)-forward(2) plotting
 for cen_forw in [1,2]:
 #PATCH end
     for data in plot_data:
