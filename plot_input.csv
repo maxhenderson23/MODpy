@@ -4,7 +4,7 @@
 # format: Settings,<var name>,<plot filename>,<plot title>,<x axis text>,<y axis text>,<x range>,<# of bins>,<log scale y axis (True or False)>,<constraint>(, <possibly more constraint>)
 --------------------------------Setting Code Here---------------------------------------
 
-Settings,hardest_pT,hardest jet pT,hardest jet $p_T$,hardest jet $p_T$ $[GeV]$,diff. cross-section $[\mu b/GeV]$,(0:2000),100,True,hardest_eta:-2.4:2.4,hardest_pT:90:Infinity,jet_quality:3:Infinity
+Settings,mul_pre_SD,hardest jet multiplicity,hardest jet multiplicity,hardest jet multiplicity,diff. cross-section $[\mu b]$,(-0.5:100.5),101,False,hardest_eta:-2.4:2.4,hardest_pT:270:Infinity,jet_quality:3:Infinity
 
 ----------------------------------------------------------------------------------------
 
@@ -17,7 +17,6 @@ Settings,hardest_pT,hardest jet pT,hardest jet $p_T$,hardest jet $p_T$ $[GeV]$,d
 # to plot multiple data, just add another line of "Data,..." 
 --------------------------------Data Code Here------------------------------------------
 
-Data,/Users/joe/Desktop/AnalyzerResults/test/,MODpy,r.
 Data,/Users/joe/Desktop/AnalyzerResults/test_produced_by_MODAnalyzer/,MODAnalyzer,b.
 
 ----------------------------------------------------------------------------------------
