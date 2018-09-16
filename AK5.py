@@ -17,19 +17,19 @@ class AK5:
             self.__neu_em_frac   = float(row[entry_dic["neu_em_frac"]])
             self.__chrg_had_frac = float(row[entry_dic["chrg_had_frac"]])
             self.__chrg_em_frac  = float(row[entry_dic["chrg_em_frac"]])
-            self.__pT2  = self.__jec**2*(self.__px**2+self.__py**2)
+            #self.__pT2  = self.__jec**2*(self.__px**2+self.__py**2)
             self.__pT = self.__jec * math.sqrt(self.__px**2+self.__py**2)
         
         except: #initialise with an empty row
             self.__valid         = False
-            self.__pT2           = 0.
+            #self.__pT2           = 0.
             self.__pT            = 0.
         
     def valid(self):
         return self.__valid
     
     def calc_eta_phi(self):
-        pmag = (self.__px**2+self.__py**2+self.__pz**2)**.5
+        pmag = math.sqrt(self.__px**2+self.__py**2+self.__pz**2)
         self.__eta  = np.arctanh(self.__pz/pmag)
         self.__phi  = np.arctan2(self.__py, self.__px)
             
@@ -66,11 +66,11 @@ class AK5:
     def e(self):
         return self.__e
     
-    def pT2(self):
-        return self.__pT2
+    #def pT2(self):
+    #return self.__pT2
     
     def pT(self):
-        return self.__pT2**.5
+        return self.__pT
     
     def eta(self):
         return self.__eta

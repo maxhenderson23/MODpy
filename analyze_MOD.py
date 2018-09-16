@@ -16,9 +16,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     k = 1000 #Provide commentary every k events
     
     #Dictionary of trigger ranges, s.t. key=trigger label, entry=true cut-off range squared
-    squared_trigger_ranges = {"default":0., "HLT_Jet30":900., "HLT_Jet60":8100., 
-    "HLT_Jet80":12100., "HLT_Jet110":22500., "HLT_Jet150":44100., "HLT_Jet190":72900., 
-    "HLT_Jet240":96100., "HLT_Jet300":152100., "HLT_Jet370":230400.}
+    #squared_trigger_ranges = {"default":0., "HLT_Jet30":900., "HLT_Jet60":8100., "HLT_Jet80":12100., "HLT_Jet110":22500., "HLT_Jet150":44100., "HLT_Jet190":72900., "HLT_Jet240":96100., "HLT_Jet300":152100., "HLT_Jet370":230400.}
     
     trigger_ranges = {"default":0., "HLT_Jet30":30., "HLT_Jet60":90.,
     "HLT_Jet80":110., "HLT_Jet110":150., "HLT_Jet150":210., "HLT_Jet190":270.,
@@ -29,8 +27,6 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     jet_def = fj.JetDefinition(fj.antikt_algorithm, R)
 
     #initialize the parameters for the current event
-    #AK5 jets stored as a list of strings corresponding to each entry of the row in the MOD file.
-    #The last entry is pT**2, saved as a floating point variable.
     def init_event_vars():
         return (AK5([], {}), AK5([], {}), [], [], 1.0, 1.0, -1, [], '', [], 1.0)
     #to use this function, copy the next line
@@ -50,7 +46,8 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             count += 1
             
             if (count-1)%k == 0:
-                print("starting to process event # " + str(count))
+                print()
+                print(">>>>>>>>>>>>>>>>>>starting to process event # " + str(count) + " <<<<<<<<<<<<<<<<<<<<<<")
             continue
         
         if not good_event:
@@ -88,24 +85,24 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                     continue
 
                 #If trigger condition is not satisfied, this event is bad
-                highest_lower_trig_threshold = 0.
-                for i in squared_trigger_ranges:
-                    if squared_trigger_ranges[i] < ak5_hardest.pT2():
+                highest_lower_trig_threshold = 'default'
+                for i in trigger_ranges:
+                    if trigger_ranges[highest_lower_trig_threshold] < trigger_ranges[i] < ak5_hardest.pT():
                         highest_lower_trig_threshold = i
                         
                 #Save the trigger equivalent to the current pT, and respective prescale
-                if highest_lower_trig_threshold in current_triggers_fired:
-                    selected_trigger = highest_lower_trig_threshold                         
-                    selected_prescale = current_prescales[current_triggers_fired.index(highest_lower_trig_threshold)]
                 if highest_lower_trig_threshold not in current_triggers_fired:
                     good_event = False
                     if (count-1)%k == 0 and count>0:
-                        print("the hardest AK5 pT squared is " + str(ak5_hardest.pT2()) + " and the trigger is " + highest_lower_trig_threshold + " with threshold " + str(squared_trigger_ranges[highest_lower_trig_threshold]))
-                        print("Rejecting event")
-                        continue
+                        print("the hardest AK5 pT is " + str(ak5_hardest.pT()) + " and the trigger is " + highest_lower_trig_threshold + " with threshold " + str(trigger_ranges[highest_lower_trig_threshold]))
+                        print("Hardest possible trigger not fired, ejecting event")
+                    continue
+
+                selected_trigger = highest_lower_trig_threshold
+                selected_prescale = current_prescales[current_triggers_fired.index(highest_lower_trig_threshold)]
                 
                 #Check that the hardest AK5 satisfies loose quality criteria
-                elif ak5_hardest.calc_quality() == 0:
+                if ak5_hardest.calc_quality() == 0:
                     good_event = False
                     if (count-1)%k == 0:
                         print("the hardest AK5 is ", ak5_hardest)
@@ -136,20 +133,18 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                 current_prescales, selected_prescale] = init_event_vars()
                 
                 if (count-1)%k == 0 and count>0:
-                    print("the event # " + str(count)+ " passed the check with lumi block (" + row[1] + ", " + row[3] + ")")
+                    print("the event # " + str(count)+ " passed the check with lumi block (" + row[entry_dic["RunNum"]] + ", " + row[entry_dic["LumiBlock"]] + ")")
                 continue
             else:
                 good_event = False
                 if (count-1)%k == 0:
-                    print("this event does not exist in the good lumi block file, exiting event")
+                    print("Not in good lumi block, exiting event")
             continue
         
         #Update hardest trigger
         if section_name == "Trig":
             trigger_title = row[entry_dic["Name"]].rpartition('_')[0] #cut out the version number
-            if trigger_title == 'HLT_Jet300': #If event has a 300 trigger, add it to the list of triggers to check
-                squared_trigger_ranges["HLT_Jet300"] = 152100.
-            if trigger_title in squared_trigger_ranges and row[entry_dic["Fired?"]] == "1": #Save all HLT_Jet trigger types that have fired (and equivalent prescales)
+            if trigger_title in trigger_ranges and row[entry_dic["Fired?"]] == "1": #Save all HLT_Jet trigger types that have fired (and equivalent prescales)
                 current_triggers_fired.append(trigger_title)
                 current_prescales.append(float(row[entry_dic["Prescale_1"]])*float(row[entry_dic["Prescale_2"]]))
             continue
@@ -158,10 +153,10 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
         if section_name == "AK5":
             ak5 = AK5(row, entry_dic)
             
-            if ak5.pT2() > ak5_hardest.pT2():
+            if ak5.pT() > ak5_hardest.pT():
                 ak5_second = copy.deepcopy(ak5_hardest)
                 ak5_hardest = copy.deepcopy(ak5)
-            elif ak5.pT2() > ak5_second.pT2():
+            elif ak5.pT() > ak5_second.pT():
                 ak5_second = copy.deepcopy(ak5)
             continue
 
@@ -207,10 +202,12 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                 write_dat.write_dat_event(dat_file, event)
                 #write_consts.write_consts_event(consts_file, event)
 
+                valid_event_count += 1
+
                 if (count-1)%k == 0:
-                    valid_event_count += 1
                     print("Event validated with fastjet, and written to .dat, event #: ",str(count),', accepted event #:',valid_event_count)
                     print('##############################################################')
+
             if valid_event_count == event_limit:
                 break
             continue

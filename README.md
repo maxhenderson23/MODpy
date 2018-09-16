@@ -23,18 +23,8 @@ The PFCs (Particle Flow Candidate) are then read into fastjet program and variou
 Plot_dat then generates plots from this 
 
 Todo: 
-0. Run through the program. 
-1. Switch the number indexting in ```analyze_MOD``` to dictionary indexing. 
-2. Use ```math.sqrt``` througout, instead of squared quantities. 
-3. Write the functionality to write ```effective_luminosity_by_trigger.csv``` file. 
-4. Modify ```analyze_MOD.py/analyze_MOD/```. 
-```
-for i in squared_trigger_ranges:
-    if squared_trigger_ranges[i] < current_hardest_AK5[-1]:
-        highest_lower_trig_threshold = i
-```
-The code might be problematic because of the unordered nature of python dictionary. 
-5. Find out the JQCs. 
+1. Write the functionality to write ```effective_luminosity_by_trigger.csv``` file. 
+2. Find out the JQCs. 
 
 ************************************************************************************************************************************************
 This repository has code to analyze MOD (MIT Open Data) files produced using [MODProducer]
