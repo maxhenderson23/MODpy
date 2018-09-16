@@ -7,11 +7,12 @@ from AK5 import AK5
 import write_dat
 import write_consts
 
-def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_limit):
+def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     good_event = True
     count = 0
     valid_event_count = 0
     section_name = ''
+    entry_dic = {}
     k = 1000 #Provide commentary every k events
     
     #Dictionary of trigger ranges, s.t. key=trigger label, entry=true cut-off range squared
@@ -19,15 +20,19 @@ def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_lim
     "HLT_Jet80":12100., "HLT_Jet110":22500., "HLT_Jet150":44100., "HLT_Jet190":72900., 
     "HLT_Jet240":96100., "HLT_Jet300":152100., "HLT_Jet370":230400.}
     
+    trigger_ranges = {"default":0., "HLT_Jet30":30., "HLT_Jet60":90.,
+    "HLT_Jet80":110., "HLT_Jet110":150., "HLT_Jet150":210., "HLT_Jet190":270.,
+    "HLT_Jet240":290., "HLT_Jet300":390., "HLT_Jet370":480.}
+    
     #Define FastJet parameters, and the algorithm
     R = 0.5
     jet_def = fj.JetDefinition(fj.antikt_algorithm, R)
 
     #initialize the parameters for the current event
-    '''AK5 jets stored as a list of strings corresponding to each entry of the row in the MOD file.
-    The last entry is pT**2, saved as a floating point variable.'''
+    #AK5 jets stored as a list of strings corresponding to each entry of the row in the MOD file.
+    #The last entry is pT**2, saved as a floating point variable.
     def init_event_vars():
-        return (AK5([]), AK5([]), [], [], 1.0, 1.0, -1, [], '', [], 1.0)
+        return (AK5([], {}), AK5([], {}), [], [], 1.0, 1.0, -1, [], '', [], 1.0)
     #to use this function, copy the next line
     [ak5_hardest, ak5_second, pseudojet_particles, current_jets, current_prescale,
     current_jec, current_jet_quality, current_triggers_fired, selected_trigger,
@@ -35,7 +40,7 @@ def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_lim
 
     #Write the file headers
     write_dat.write_dat_header(dat_file)
-    write_consts.write_consts_header(consts_file)
+    #write_consts.write_consts_header(consts_file)
     
     for row in MOD_file:
         
@@ -51,8 +56,12 @@ def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_lim
         if not good_event:
             continue
         
-        if row[0] == '#' and not ".mod" in row[1]:
-        
+        if row[0] == '#' and len(row) > 1:
+            
+            #Skip the MOD file name line
+            if ".mod" in row[1]:
+                continue
+            
             #New section. First check that sections follow on in the correct order. Then perform checks on the data stored from the previous section.
             if section_name == "Trig":
                 #Check that the AK5 section follows the Trig section
@@ -108,15 +117,18 @@ def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_lim
                         print("the selected trigger is ",selected_trigger)
                         print("trigger fired properly, loose JQC passed, jet quality set to " + str(ak5_hardest.quality()) + " , continue to process event")
             
-            #Begin reading the new section
+            #Begin reading the new section, updating section name and entry_dic to record the relation between column name and index
             section_name = row[1]
+            entry_dic = {}
+            for i, entry in enumerate(row[1:]):
+                entry_dic[entry] = i
             if (count-1)%k == 0:
                 print("beginning to read in section " + section_name)
             continue
         
         #Perform lumi checks for 2011 data and initialise new event
         if section_name == "Cond":
-            if lumi.search_lumi((row[1], row[3]), lumi_runs_and_blocks):
+            if lumi.search_lumi((row[entry_dic["RunNum"]], row[entry_dic["LumiBlock"]]), lumi_runs_and_blocks):
                 
                 #Initialise variables for new event
                 [ak5_hardest, ak5_second, pseudojet_particles, current_jets, current_prescale,
@@ -134,17 +146,17 @@ def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_lim
         
         #Update hardest trigger
         if section_name == "Trig":
-            trigger_title = row[1].rpartition('_')[0]
+            trigger_title = row[entry_dic["Name"]].rpartition('_')[0] #cut out the version number
             if trigger_title == 'HLT_Jet300': #If event has a 300 trigger, add it to the list of triggers to check
                 squared_trigger_ranges["HLT_Jet300"] = 152100.
-            if trigger_title in squared_trigger_ranges and row[4] == "1": #Save all HLT_Jet trigger types that have fired (and equivalent prescales)
+            if trigger_title in squared_trigger_ranges and row[entry_dic["Fired?"]] == "1": #Save all HLT_Jet trigger types that have fired (and equivalent prescales)
                 current_triggers_fired.append(trigger_title)
-                current_prescales.append(float(row[2])*float(row[3]))
+                current_prescales.append(float(row[entry_dic["Prescale_1"]])*float(row[entry_dic["Prescale_2"]]))
             continue
 
         #Update two hardest AK5s
         if section_name == "AK5":
-            ak5 = AK5(row)
+            ak5 = AK5(row, entry_dic)
             
             if ak5.pT2() > ak5_hardest.pT2():
                 ak5_second = copy.deepcopy(ak5_hardest)
@@ -155,8 +167,8 @@ def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_lim
 
         #Update list of PFC four-momenta
         if row[0] == "PFC":
-            psJ = fj.PseudoJet(float(row[1]),float(row[2]),float(row[3]),float(row[4]))
-            psJ.set_user_index(int(row[5]))
+            psJ = fj.PseudoJet(float(row[entry_dic["px"]]),float(row[entry_dic["py"]]),float(row[entry_dic["pz"]]),float(row[entry_dic["energy"]]))
+            psJ.set_user_index(int(row[entry_dic["pdgId"]]))
             pseudojet_particles.append(psJ)
             continue
 
@@ -193,7 +205,7 @@ def analyze_MOD(MOD_file, dat_file, consts_file, lumi_runs_and_blocks, event_lim
                               ak5_hardest.quality(), selected_trigger)
 
                 write_dat.write_dat_event(dat_file, event)
-                write_consts.write_consts_event(consts_file, event)
+                #write_consts.write_consts_event(consts_file, event)
 
                 if (count-1)%k == 0:
                     valid_event_count += 1

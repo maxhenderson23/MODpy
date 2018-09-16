@@ -1,26 +1,29 @@
 import numpy as np
+import math
 
 class AK5:
-    def __init__(self,row):
+    def __init__(self, row, entry_dic):
         try:
             self.__valid         = True
-            self.__px            = float(row[1])
-            self.__py            = float(row[2])
-            self.__pz            = float(row[3])
-            self.__e             = float(row[4])
-            self.__jec           = float(row[5])
-            self.__area          = float(row[6])
-            self.__no_of_const   = float(row[7])
-            self.__chrg_multip   = float(row[8])
-            self.__neu_had_frac  = float(row[9])
-            self.__neu_em_frac   = float(row[10])
-            self.__chrg_had_frac = float(row[11])
-            self.__chrg_em_frac  = float(row[12])
+            self.__px            = float(row[entry_dic["px"]])
+            self.__py            = float(row[entry_dic["py"]])
+            self.__pz            = float(row[entry_dic["pz"]])
+            self.__e             = float(row[entry_dic["energy"]])
+            self.__jec           = float(row[entry_dic["jec"]])
+            self.__area          = float(row[entry_dic["area"]])
+            self.__no_of_const   = float(row[entry_dic["no_of_const"]])
+            self.__chrg_multip   = float(row[entry_dic["chrg_multip"]])
+            self.__neu_had_frac  = float(row[entry_dic["neu_had_frac"]])
+            self.__neu_em_frac   = float(row[entry_dic["neu_em_frac"]])
+            self.__chrg_had_frac = float(row[entry_dic["chrg_had_frac"]])
+            self.__chrg_em_frac  = float(row[entry_dic["chrg_em_frac"]])
             self.__pT2  = self.__jec**2*(self.__px**2+self.__py**2)
+            self.__pT = self.__jec * math.sqrt(self.__px**2+self.__py**2)
         
         except: #initialise with an empty row
             self.__valid         = False
             self.__pT2           = 0.
+            self.__pT            = 0.
         
     def valid(self):
         return self.__valid

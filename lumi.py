@@ -1,6 +1,7 @@
 import csv
 
 #Open lumi file to identify 'good' events, a dictionary for {"<run>": {"<block0>":lumi, ...}}
+#All entries are stored as strings 
 def read_lumi_runs_and_blocks(lum_file_dir):
     lumi_runs_and_blocks = {}
     count = 0

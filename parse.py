@@ -1,7 +1,7 @@
 #This program takes two arguments
 #First argument: directory to input MOD files
-#First argument: directory to input .dat files
-#Second argument (optional): total number of events to be processed
+#Second argument: directory to input .dat files
+#Third argument (optional): total number of events to be processed
 #The result is stored in event_list
 
 #import modules
@@ -28,13 +28,13 @@ data_files = os.listdir(input_directory)
 
 MOD_files_2011 = []
 dat_files_2011 = []
-consts_files_2011 = []
+#consts_files_2011 = []
 
 for data_file in data_files:
     if data_file.endswith(".mod"):
         MOD_files_2011.append(input_directory + data_file)
         dat_files_2011.append(output_directory + data_file.replace('.mod', '.dat'))
-        consts_files_2011.append(output_directory + data_file.replace('.mod', '.consts'))
+        #consts_files_2011.append(output_directory + data_file.replace('.mod', '.consts'))
 
 #Load good lumi block numbers
 lumi_runs_and_blocks = lumi.read_lumi_runs_and_blocks("./2011lumibyls.csv")
@@ -53,12 +53,15 @@ event_limit = total_event_limit
 for i in range(len(MOD_files_2011)):
     reader = csv.reader(open(MOD_files_2011[i]), delimiter=' ', skipinitialspace = 1)
     if os.path.exists(dat_files_2011[i]):
-        os.remove(dat_files_2011[i])
-    if os.path.exists(consts_files_2011[i]):
-        os.remove(consts_files_2011[i])
+        #os.remove(dat_files_2011[i])
+        continue
+    #if os.path.exists(consts_files_2011[i]):
+        #os.remove(consts_files_2011[i])
     dat_writer = csv.writer(open(dat_files_2011[i], 'w+'), delimiter=' ', quoting = csv.QUOTE_NONE, escapechar = ' ')
-    consts_writer = csv.writer(open(consts_files_2011[i], 'w+'), delimiter=' ', quoting = csv.QUOTE_NONE, escapechar = ' ')
-    event_limit -= analyze_MOD(reader, dat_writer, consts_writer, lumi_runs_and_blocks, event_limit)
+    #consts_writer = csv.writer(open(consts_files_2011[i], 'w+'), delimiter=' ', quoting = csv.QUOTE_NONE, escapechar = ' ')
+    valid_event_count = analyze_MOD(reader, dat_writer, lumi_runs_and_blocks, event_limit)
+    print('The number of valid events in this MOD file is ' + str(valid_event_count))
+    event_limit -= valid_event_count
 
 #Print files written and final script run time
 for i in range(len(MOD_files_2011)):
