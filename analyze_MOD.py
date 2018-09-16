@@ -15,12 +15,11 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     entry_dic = {}
     k = 1000 #Provide commentary every k events
     
-    #Dictionary of trigger ranges, s.t. key=trigger label, entry=true cut-off range squared
-    #squared_trigger_ranges = {"default":0., "HLT_Jet30":900., "HLT_Jet60":8100., "HLT_Jet80":12100., "HLT_Jet110":22500., "HLT_Jet150":44100., "HLT_Jet190":72900., "HLT_Jet240":96100., "HLT_Jet300":152100., "HLT_Jet370":230400.}
+    trigger_ranges = {"default":0., "HLT_Jet30":30., "HLT_Jet60":90., "HLT_Jet80":110., "HLT_Jet110":150., "HLT_Jet150":210., "HLT_Jet190":270., "HLT_Jet240":290., "HLT_Jet300":390., "HLT_Jet370":480.}
     
-    trigger_ranges = {"default":0., "HLT_Jet30":30., "HLT_Jet60":90.,
-    "HLT_Jet80":110., "HLT_Jet110":150., "HLT_Jet150":210., "HLT_Jet190":270.,
-    "HLT_Jet240":290., "HLT_Jet300":390., "HLT_Jet370":480.}
+    #initialize info to calculate effective luminosity for respective trigger
+    effective_luminosity = {"HLT_Jet30":0., "HLT_Jet60":0., "HLT_Jet80":0., "HLT_Jet110":0., "HLT_Jet150":0., "HLT_Jet190":0., "HLT_Jet240":0., "HLT_Jet300":0., "HLT_Jet370":0.}
+    appeared_lumi_run_block_trigger = {}
     
     #Define FastJet parameters, and the algorithm
     R = 0.5
@@ -28,15 +27,14 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
 
     #initialize the parameters for the current event
     def init_event_vars():
-        return (AK5([], {}), AK5([], {}), [], [], 1.0, 1.0, -1, [], '', [], 1.0)
+        return (AK5([], {}), AK5([], {}), [], [], 1.0, 1.0, -1, [], '', [], 1.0, {})
     #to use this function, copy the next line
     [ak5_hardest, ak5_second, pseudojet_particles, current_jets, current_prescale,
     current_jec, current_jet_quality, current_triggers_fired, selected_trigger,
-    current_prescales, selected_prescale] = init_event_vars()
+    current_prescales, selected_prescale, current_triggers_prescales] = init_event_vars()
 
     #Write the file headers
     write_dat.write_dat_header(dat_file)
-    #write_consts.write_consts_header(consts_file)
     
     for row in MOD_file:
         
@@ -61,6 +59,9 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             
             #New section. First check that sections follow on in the correct order. Then perform checks on the data stored from the previous section.
             if section_name == "Trig":
+                #Write in effective luminosity
+                
+                
                 #Check that the AK5 section follows the Trig section
                 if row[1] != "AK5":
                     good_event = False 
@@ -144,6 +145,8 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
         #Update hardest trigger
         if section_name == "Trig":
             trigger_title = row[entry_dic["Name"]].rpartition('_')[0] #cut out the version number
+            if trigger_title in trigger_ranges:
+                current_triggers_prescales[trigger_title] = {"Fired?":(row[entry_dic["Fired?"]] == "1"), "prescale":float(row[entry_dic["Prescale_1"]])*float(row[entry_dic["Prescale_2"]])}
             if trigger_title in trigger_ranges and row[entry_dic["Fired?"]] == "1": #Save all HLT_Jet trigger types that have fired (and equivalent prescales)
                 current_triggers_fired.append(trigger_title)
                 current_prescales.append(float(row[entry_dic["Prescale_1"]])*float(row[entry_dic["Prescale_2"]]))
@@ -200,7 +203,6 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                               ak5_hardest.quality(), selected_trigger)
 
                 write_dat.write_dat_event(dat_file, event)
-                #write_consts.write_consts_event(consts_file, event)
 
                 valid_event_count += 1
 
