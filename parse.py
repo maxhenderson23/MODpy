@@ -53,10 +53,10 @@ for i in range(len(MOD_files_2011)):
     if os.path.exists(dat_files_2011[i]):
         continue
     dat_writer = csv.writer(open(dat_files_2011[i], 'w+'), delimiter=' ', quoting = csv.QUOTE_NONE, escapechar = ' ')
-    valid_event_count = analyze_MOD(reader, dat_writer, lumi_runs_and_blocks, event_limit)
-    print()
+    valid_event_count = analyze_MOD(reader, dat_writer, lumi_runs_and_blocks, event_limit, MOD_files_2011[i])
+    print("")
     print('The number of valid events in this MOD file is ' + str(valid_event_count))
-    print()
+    print("")
     event_limit -= valid_event_count
 
 #Print files written and final script run time

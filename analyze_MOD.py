@@ -5,15 +5,21 @@ from match_jets import match_jets
 from Event import Event
 from AK5 import AK5
 import write_dat
-import write_consts
+import csv
 
-def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
+def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit, input_file_name):
     good_event = True
     count = 0
     valid_event_count = 0
     section_name = ''
     entry_dic = {}
     k = 1000 #Provide commentary every k events
+    MOD_file_name = input_file_name.split('/')[-1]
+    print("")
+    print("")
+    print("---------------------------------------------------------")
+    print("Starting to analyze MOD file " + MOD_file_name + "... ")
+    print("---------------------------------------------------------")
     
     trigger_ranges = {"default":0., "HLT_Jet30":30., "HLT_Jet60":90., "HLT_Jet80":110., "HLT_Jet110":150., "HLT_Jet150":210., "HLT_Jet190":270., "HLT_Jet240":290., "HLT_Jet300":390., "HLT_Jet370":480.}
     
@@ -21,17 +27,24 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
     effective_luminosity = {"HLT_Jet30":0., "HLT_Jet60":0., "HLT_Jet80":0., "HLT_Jet110":0., "HLT_Jet150":0., "HLT_Jet190":0., "HLT_Jet240":0., "HLT_Jet300":0., "HLT_Jet370":0.}
     appeared_lumi_run_block_trigger = {}
     
+    def check_and_add_eff_lumi_to_appeared_lumi_run_block_trigger(run, block, trigger, prescale):
+        if not run in appeared_lumi_run_block_trigger:
+            appeared_lumi_run_block_trigger[run] = {}
+        if not block in appeared_lumi_run_block_trigger[run]:
+            appeared_lumi_run_block_trigger[run][block] = []
+        if not trigger in appeared_lumi_run_block_trigger[run][block]:
+            appeared_lumi_run_block_trigger[run][block].append(trigger)
+            effective_luminosity[trigger] += lumi_runs_and_blocks[run][block]/prescale
+    
     #Define FastJet parameters, and the algorithm
     R = 0.5
     jet_def = fj.JetDefinition(fj.antikt_algorithm, R)
 
     #initialize the parameters for the current event
     def init_event_vars():
-        return (AK5([], {}), AK5([], {}), [], [], 1.0, 1.0, -1, [], '', [], 1.0, {})
+        return (AK5([], {}), AK5([], {}), [], '', {}, '', '')
     #to use this function, copy the next line
-    [ak5_hardest, ak5_second, pseudojet_particles, current_jets, current_prescale,
-    current_jec, current_jet_quality, current_triggers_fired, selected_trigger,
-    current_prescales, selected_prescale, current_triggers_prescales] = init_event_vars()
+    [ak5_hardest, ak5_second, pseudojet_particles, selected_trigger, current_triggers_prescales, run_number, block_number] = init_event_vars()
 
     #Write the file headers
     write_dat.write_dat_header(dat_file)
@@ -44,8 +57,8 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             count += 1
             
             if (count-1)%k == 0:
-                print()
-                print(">>>>>>>>>>>>>>>>>>starting to process event # " + str(count) + " <<<<<<<<<<<<<<<<<<<<<<")
+                print("")
+                print(">>>>>>>>>>>>>>>>>> starting to process event # " + str(count) + " <<<<<<<<<<<<<<<<<<<<<<")
             continue
         
         if not good_event:
@@ -68,14 +81,14 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                     if (count-1)%k == 0:
                         print("no AK5s in mod file for this event, hence ignore event")
                     continue
-                if len(current_triggers_fired) == 0:
+                if sum([trig["Fired?"] for trig in current_triggers_prescales.values()]):
+                    if (count-1)%k == 0:
+                        print("this event managed to fire some triggers, continue to process the event")
+                else:
                     good_event = False
                     if (count-1)%k == 0:
                         print("this event failed to fire any trigger, exiting event")
                     continue
-                else:
-                    if (count-1)%k == 0:
-                        print("this event managed to fire some triggers, continue to process the event")
                         
             elif section_name == "AK5":
                 #Check that the PFC section follows the AK5 section
@@ -92,7 +105,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                         highest_lower_trig_threshold = i
                         
                 #Save the trigger equivalent to the current pT, and respective prescale
-                if highest_lower_trig_threshold not in current_triggers_fired:
+                if (highest_lower_trig_threshold not in current_triggers_prescales) or (not current_triggers_prescales[highest_lower_trig_threshold]["Fired?"]):
                     good_event = False
                     if (count-1)%k == 0 and count>0:
                         print("the hardest AK5 pT is " + str(ak5_hardest.pT()) + " and the trigger is " + highest_lower_trig_threshold + " with threshold " + str(trigger_ranges[highest_lower_trig_threshold]))
@@ -100,7 +113,6 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                     continue
 
                 selected_trigger = highest_lower_trig_threshold
-                selected_prescale = current_prescales[current_triggers_fired.index(highest_lower_trig_threshold)]
                 
                 #Check that the hardest AK5 satisfies loose quality criteria
                 if ak5_hardest.calc_quality() == 0:
@@ -129,9 +141,9 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             if lumi.search_lumi((row[entry_dic["RunNum"]], row[entry_dic["LumiBlock"]]), lumi_runs_and_blocks):
                 
                 #Initialise variables for new event
-                [ak5_hardest, ak5_second, pseudojet_particles, current_jets, current_prescale,
-                current_jec, current_jet_quality, current_triggers_fired, selected_trigger,
-                current_prescales, selected_prescale] = init_event_vars()
+                [ak5_hardest, ak5_second, pseudojet_particles, selected_trigger, current_triggers_prescales, run_number, block_number] = init_event_vars()
+                run_number = row[entry_dic["RunNum"]]
+                block_number = row[entry_dic["LumiBlock"]]
                 
                 if (count-1)%k == 0 and count>0:
                     print("the event # " + str(count)+ " passed the check with lumi block (" + row[entry_dic["RunNum"]] + ", " + row[entry_dic["LumiBlock"]] + ")")
@@ -147,9 +159,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             trigger_title = row[entry_dic["Name"]].rpartition('_')[0] #cut out the version number
             if trigger_title in trigger_ranges:
                 current_triggers_prescales[trigger_title] = {"Fired?":(row[entry_dic["Fired?"]] == "1"), "prescale":float(row[entry_dic["Prescale_1"]])*float(row[entry_dic["Prescale_2"]])}
-            if trigger_title in trigger_ranges and row[entry_dic["Fired?"]] == "1": #Save all HLT_Jet trigger types that have fired (and equivalent prescales)
-                current_triggers_fired.append(trigger_title)
-                current_prescales.append(float(row[entry_dic["Prescale_1"]])*float(row[entry_dic["Prescale_2"]]))
+                check_and_add_eff_lumi_to_appeared_lumi_run_block_trigger(run_number, block_number, trigger_title, current_triggers_prescales[trigger_title]["prescale"])
             continue
 
         #Update two hardest AK5s
@@ -199,7 +209,7 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
                     print("Fastjet matching passed, writing event to dat file.")
                 
                 #Write to the Event class and then to the .dat file (Note this is just one event per line in the dat file (for both hardest jets))
-                event = Event([fj_hardest, fj_second], selected_prescale, ak5_hardest.jec(),
+                event = Event([fj_hardest, fj_second], current_triggers_prescales[selected_trigger]["prescale"], ak5_hardest.jec(),
                               ak5_hardest.quality(), selected_trigger)
 
                 write_dat.write_dat_event(dat_file, event)
@@ -213,5 +223,17 @@ def analyze_MOD(MOD_file, dat_file, lumi_runs_and_blocks, event_limit):
             if valid_event_count == event_limit:
                 break
             continue
+    
+    #Write Effective Luminocity
+    reader = open('effective_luminosity_by_trigger.csv')
+    rows = []
+    for row in reader:
+        if row.split(',')[0] != MOD_file_name:
+            rows.append(row)
+    writer = open('effective_luminosity_by_trigger.csv', 'w+')
+    for trigger in effective_luminosity:
+        writer.write(MOD_file_name+','+trigger+','+str(effective_luminosity[trigger])+'\n')
+    for row in rows:
+        writer.write(row)
     
     return valid_event_count
